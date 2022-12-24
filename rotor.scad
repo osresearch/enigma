@@ -330,26 +330,31 @@ module steel_bushing()
 	hollow_cylinder(13, 7, 27 - 5.6 - 14.8);
 }
 
-
-translate([0,0,22]) color("red") rotate([0,0,+42]) kerfring();
-translate([0,0,11.7]) color("silver") digitring1();
+module animated_assembly(t)
+{
+translate([0,0,22 + t * 26]) color("red") rotate([0,0,+42]) kerfring();
+translate([0,0,11.7 + t * 18]) color("silver") digitring1();
 
 translate([0,0,0])
 color("silver")
 steel_bushing();
 
-translate([0,0,14.7-3.6]) bushing();
+translate([0,0,14.7-3.6 + t * 40]) bushing();
 
-translate([0,0,27 - 5.6])
+translate([0,0,27 - 5.6 + t * 10])
 color("blue")
 rotate([0,0,90]) rollplate();
 
-translate([0,0,0])
+translate([0,0,0-t*15])
 color("yellow")
 rotate([0,0,90])
 center_toothed_wheel();
 
-translate([0,0,0]) color("pink") rotate([0,0,90]) coping();
+translate([0,0,0-t*22]) color("pink") rotate([0,0,90]) coping();
 
-translate([0,0,0]) color("green") toothed_wheel();
+translate([0,0,0-t*40]) color("green") toothed_wheel();
+}
 
+rotate([0,90,$t*360])
+translate([0,0,-15])
+animated_assembly(sin(180*$t)*sin(180*$t)*2);
