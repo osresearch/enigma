@@ -158,9 +158,14 @@ module toothed_wheel()
 		translate([0,0,-0.1]) cylinder(d=65, h=3.8+0.1, $fn=60);
 		translate([0,0,3.8]) cylinder(d=57, h=5, $fn=60);
 	}
+
+	// tooth to engage bushing notch; should be rounded?
+	%translate([-4/2,-57/2-5,0])
+	cube([4,5,3.8]);
 }
 
 
+// 400003 page 3
 module bushing()
 {
 	render() difference() {
@@ -182,12 +187,20 @@ module bushing()
 			translate([60/2,0,19.6-4.2])
 			rotate([0,-90,0])
 			countersink(1.8, 5, 0.6);
+
+		// sect B (notch? this is not right; engages with toothed wheel)
+		translate([0,-60/2,19.6-4/2])
+		cube([4,4,4.1], center=true);
 	}
 }
 
+
+module assembly()
+{
 translate([0,0,34]) color("red") rotate([0,0,+42]) kerfring();
 translate([0,0,20]) color("blue") digitring1();
-
 translate([0,0,34]) rotate([0,180,0]) bushing();
+translate([0,0,10]) color("green") rotate([0,180,0]) toothed_wheel();
+}
 
-translate([0,0,-20]) color("green") rotate([0,180,0]) toothed_wheel();
+assembly();
