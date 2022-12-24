@@ -146,7 +146,7 @@ module toothed_wheel2()
 	}
 }
 
-module toothed_wheel()
+module _toothed_wheel()
 {
 	render() difference()
 	{
@@ -164,10 +164,22 @@ module toothed_wheel()
 	cube([4,5,3.8]);
 }
 
+toothed_wheel_height = 6.8;
+toothed_wheel_inner_height = 3.8;
+
+module toothed_wheel()
+{
+	translate([0,0,toothed_wheel_height])
+	rotate([0,180,0])
+	_toothed_wheel();
+}
+
 
 // 400003 page 3
 module bushing()
 {
+	translate([0,0,14.7])
+	rotate([0,180,0])
 	render() difference() {
 		union() {
 			translate([0,0,0.0]) hollow_cylinder(61.5, 55.8, 2.0);
@@ -182,8 +194,8 @@ module bushing()
 			rotate([0,90,0]) cylinder(d=1.6, h=5, $fn=16);
 
 		// detail A
-		for(a=[45,180+45])
-			rotate([0,0,a])
+		for(i=[1:4])
+			rotate([0,0,45+90*i])
 			translate([60/2,0,19.6-4.2])
 			rotate([0,-90,0])
 			countersink(1.8, 5, 0.6);
@@ -195,12 +207,149 @@ module bushing()
 }
 
 
-module assembly()
+// 400009 page 9
+module _center_toothed_wheel()
 {
-translate([0,0,34]) color("red") rotate([0,0,+42]) kerfring();
-translate([0,0,20]) color("blue") digitring1();
-translate([0,0,34]) rotate([0,180,0]) bushing();
-translate([0,0,10]) color("green") rotate([0,180,0]) toothed_wheel();
+	outer_h = 14.7 - 3 - 6;
+
+	render() difference()
+	{
+		union()
+		{
+			cylinder(d=57, h=14.7, $fn=120);
+			translate([0,0,6.8]) cylinder(d=65, h=14.7-3-6.8, $fn=120);
+		}
+
+		// center axle
+		translate([0,0,-1]) cylinder(d=9, h=20, $fn=60);
+
+		// three pins to connect to the coping
+		for(a=[90,-30,-150])
+			rotate([0,0,a])
+			translate([33.2/2,0,outer_h])
+			cylinder(d=6, h=10, $fn=30);
+
+		// clear out the top
+		translate([0,0,14.7-3])
+		cylinder(d=52.9, h=5, $fn=60);
+
+		// notch on outer ring
+		translate([57/2,-4/2,-1]) cube([10,4,20]);
+
+		// notch on bottom surface
+		translate([-2/2,-57/2-1,-1]) cube([2,3,6.8+1]);
+
+		// through holes for the contacts
+		for(i=[1:26])
+			rotate([0,0,(i+0.5)*360/26])
+			translate([45.2/2,0,0])
+			countersink(3.2, 15, 1);
+
+		// four sideways mounting screws, 3.6mm deep
+		for(a=[0,90,180,270])
+			rotate([0,0,45+a])
+			translate([57/2 - 3.6, 0, 3.7])
+			rotate([0,90,0])
+			cylinder(d=4.5, h=5, $fn=16);
+	}
+
+	translate([0,0,14.7-3])
+	render() difference()
+	{
+		// center boss with locating notch
+		cylinder(d=24.4, h=3);
+
+		// center axle
+		translate([0,0,-1]) cylinder(d=9, h=20, $fn=60);
+		
+		// notch
+		translate([-3/2,24.4/2 - 3,0])
+		cube([3,10,10]);
+	}
 }
 
-assembly();
+center_toothed_wheel_height = 14.7;
+module center_toothed_wheel()
+{
+	translate([0,0,center_toothed_wheel_height])
+	rotate([0,180,0])
+	_center_toothed_wheel();
+}
+
+// 40015 page 15
+module coping()
+{
+	render() difference()
+	{
+		hollow_cylinder(52.9, 24.4, 3.6, $fn=120);
+		
+		// contacts
+		for(i=[1:26])
+			rotate([0,0,(i+0.5)*360/26])
+			translate([45.2/2,0,0])
+			cylinder(d=2.1, h=5, $fn=16);
+
+		// pins to connect to the center toothed wheel
+		// that part has them at 33.2/2 radius, this has 17.4?
+		for(a=[90,-30,-150])
+			rotate([0,0,a])
+			translate([17.4,0,0])
+			countersink(3.1, 10);
+	}
+
+	// add the locating notch back in
+	translate([-3/2, 10, 0])
+	cube([3,5,3.6]);
+}
+
+// 400011 page 11
+module rollplate()
+{
+	render() difference() {
+		hollow_cylinder(55.8, 9, 3.5);
+
+		// contacts
+		for(i=[1:26])
+			rotate([0,0,(i+0.5)*360/26])
+			{
+				translate([45.2/2,0,-1])
+				cylinder(d=2.1, h=5, $fn=16);
+
+				translate([45.2/2,0,2])
+				cylinder(d=4, h=5, $fn=16);
+			}
+	}
+}
+
+// 400012 page 12
+module steel_bushing()
+{
+	hollow_cylinder(9, 7, 27);
+
+	translate([0,0,14.8])
+	hollow_cylinder(13, 7, 27 - 5.6 - 14.8);
+}
+
+
+translate([0,0,22]) color("red") rotate([0,0,+42]) kerfring();
+translate([0,0,11.7]) color("silver") digitring1();
+
+translate([0,0,0])
+color("silver")
+steel_bushing();
+
+translate([0,0,14.7-3.6]) bushing();
+
+translate([0,0,27 - 5.6])
+color("blue")
+rotate([0,0,90]) rollplate();
+
+translate([0,0,0])
+color("yellow")
+rotate([0,0,90])
+center_toothed_wheel();
+
+translate([0,0,0]) color("pink") rotate([0,0,90]) coping();
+
+translate([0,0,0]) color("green") toothed_wheel();
+
