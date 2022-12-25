@@ -46,7 +46,8 @@ module digitring(which=23)
 {
 	render() difference()
 	{
-		hollow_cylinder(75, 60, 8.5 + 1.5);
+		cylinder(d=75, h=8.5 + 1.5, $fn=26);
+		translate([0,0,-1]) cylinder(d=60, h=8.5 + 1.5 + 2, $fn=120);
 
 		for(i=[1:26])
 		{
@@ -60,7 +61,7 @@ module digitring(which=23)
 		cylinder(d=3,h=20, $fn=30);
 
 		// digits, rotated so that they line up right and with leading zeros
-		%for(i=[1:26])
+		for(i=[1:26])
 		{
 			rotate([0,0,-90 + (i-which)*360/26])
 			translate([75/2-0.75,0,8.5/2])
@@ -229,6 +230,13 @@ module _center_toothed_wheel()
 			translate([33.2/2,0,outer_h])
 			cylinder(d=6, h=10, $fn=30);
 
+		// three screws to connect to the rollplate
+		// opposite the angles of the bottom ones
+		for(a=[90,-30,-150])
+			rotate([0,180,a])
+			translate([12,0,-3.5])
+			cylinder(d=3, h=5, $fn=20);
+
 		// clear out the top
 		translate([0,0,14.7-3])
 		cylinder(d=52.9, h=5, $fn=60);
@@ -303,6 +311,8 @@ module coping()
 }
 
 // 400011 page 11
+// in the drawings there are no center holes, but there are screws
+// in the photos, so these must be added to prevent it from spinning
 module rollplate()
 {
 	render() difference() {
@@ -318,6 +328,13 @@ module rollplate()
 				translate([45.2/2,0,2])
 				cylinder(d=4, h=5, $fn=16);
 			}
+
+		// pins to connect to the center toothed wheel
+		// these have been added at 12mm centers
+		for(a=[90,-30,-150])
+			rotate([0,180,a])
+			translate([12,0,-3.5])
+			countersink(3.1, 10);
 	}
 }
 
@@ -330,10 +347,10 @@ module steel_bushing()
 	hollow_cylinder(13, 7, 27 - 5.6 - 14.8);
 }
 
-module animated_assembly(t)
+module animated_assembly(t,which=11)
 {
 translate([0,0,22 + t * 26]) color("red") rotate([0,0,+42]) kerfring();
-translate([0,0,11.7 + t * 18]) color("silver") digitring1();
+translate([0,0,11.7 + t * 7]) color("silver") digitring(which);
 
 translate([0,0,0])
 color("silver")
@@ -355,6 +372,9 @@ translate([0,0,0-t*22]) color("pink") rotate([0,0,90]) coping();
 translate([0,0,0-t*40]) color("green") toothed_wheel();
 }
 
+/*
 rotate([0,90,$t*360])
 translate([0,0,-15])
 animated_assembly(sin(180*$t)*sin(180*$t)*2);
+*/
+
