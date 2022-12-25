@@ -1,4 +1,5 @@
 // rack pdf designs
+include <rotor.scad>
 
 module mirror_dupe(axis=[1,0,0])
 {
@@ -55,7 +56,7 @@ module driver(thick=0)
 // 100039 page 39 of rack
 // this one is really bad for figuring out what is going on where.
 // all of the things are just eyeballed
-centering_device_coords = [-8.6, 47.4, 0];
+centering_device_coords = [-8.6, 47.4, 2];
 
 module _centering_device(h)
 {
@@ -122,6 +123,13 @@ module roll_centering_device()
 		cylinder(d=13, h=6, $fn=60);
 		translate([0,0,-1]) cylinder(d=4, h=6+2, $fn=60);
 	}
+}
+
+module centering_device_assembly()
+{
+	centering_device();
+	translate(centering_device_coords)
+	roll_centering_device();
 }
 
 // 100001 - bearing block left
@@ -259,17 +267,27 @@ translate([5,-axle_pos,-thick/2])
 
 
 
-include <rotor.scad>
 module bearing_assembly()
 {
 	// the official baseplate is 159 apart on the bearing block mounts
-	translate([-bearing_block_len,0,-159]) bearing_block_left();
-	translate([-bearing_block_len,0,-5]) bearing_block_right();
+	translate([0,0,0]) bearing_block_left();
+	%translate([0,0,159-2.5]) bearing_block_right();
 
-	translate([-bearing_block_center_x,bearing_block_center_y,0]) {
-		translate([0,0,-50]) animated_assembly(0,0);
-		translate([0,0,-50-27]) animated_assembly(0,0);
-		translate([0,0,-50-27*2]) animated_assembly(0,0);
+	translate([bearing_block_len - bearing_block_center_x,bearing_block_center_y,0]) {
+		translate([0,0,136]) rotate([0,180,360/26/2]) animated_assembly(0,0);
+		translate([0,0,136-27]) rotate([0,180,360/26/2]) animated_assembly(0,0);
+		translate([0,0,136-27*2]) rotate([0,180,360/26/2]) animated_assembly(0,0);
+	}
+
+	// centering assembly is 4,29 on the bearing plate
+	translate([bearing_block_len-4,29,00])
+	{
+		cylinder(d=5,h=159);
+		for(i=[0:2])
+		{
+			translate([0,0,70+i*27])
+			centering_device_assembly();
+		}
 	}
 }
 
@@ -282,6 +300,7 @@ bearingblock_pos = [-257/2+3+6,287-107, 6];
 
 module baseplate()
 {
+	color("gray")
 	translate([-257/2,0,0])
 	cube([257,287,6]);
 
@@ -291,20 +310,67 @@ module baseplate()
 	render() difference()
 	{
 		translate([-6/2,-18/2,-29]) cube([6,18,40]);
-		rotate([0,90,0]) cylinder(d=6, h=10);
+		translate([6,0,0]) rotate([0,-90,0]) cylinder(d=6, h=10);
 	}
 
 	// bearing block brackets, 159mm apart (inside)
-	translate(bearingblock_pos) {
+	translate(bearingblock_pos)
+	translate([159/2,0,0])
+	mirror_dupe() translate([-159/2-4,0,0])
+	render() difference() {
 		cube([4,101,26]);
-		translate([159,0,0]) cube([4,101,26]);
+		translate([0,101/2,22]) rotate([0,90,0]) countersink(4.2, 20);
+		translate([0,101/2+66.5/2,22]) rotate([0,90,0]) countersink(4.2, 20);
+		translate([0,101/2-66.5/2,22]) rotate([0,90,0]) countersink(4.2, 20);
+	}
+
+	// springs for the centering devices
+	translate([-257/2,287,0])
+	for(i=[0:3])
+	{
+		translate([48+27*i,-38.5+13/2,0])
+		render() difference() 
+		{
+			union() {
+				translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=5.5, h=13);
+				translate([-11/2,0,6]) cube([11,13,10]);
+			}
+			translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=6.2, h=19.1);
+		}
+	}
+
+	// stops for the ratchet pawls, 1000112
+	// this merges the 10x3mm 100045 and 10x11mm high 100037 into a single unit
+	translate([-257/2,287,0])
+	for(i=[0:2])
+	{
+		translate([89+i*27,-(287-236),6])
+		cylinder(d=10, h=3 + 11);
+	}
+	
+}
+
+module compensator_assembly()
+{
+	color("pink") compensator();
+	color("pink")
+	translate([5,102.5-5,0]) {
+		rotate([0,90,0]) cylinder(d=5, h=140);
+
+		translate([68,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(1);
+		translate([68+27,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(1);
+		translate([68+54,0,0]) rotate([+5,0,0]) rotate([90,0,90]) driver(0);
 	}
 }
 
-color("gold") baseplate();
+baseplate();
 
-color("pink") translate(compensator_pos)
-compensator();
+translate(compensator_pos)
+rotate([-2,0,0])
+compensator_assembly();
 
 translate(bearingblock_pos)
-rotate([90,0,-90]) bearing_assembly();
+translate([0,(55.5-48.5)/2,22 - 9.5])
+rotate([90,0,90])
+bearing_assembly();
+
