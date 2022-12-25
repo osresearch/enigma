@@ -118,8 +118,128 @@ module roll_centering_device()
 	}
 }
 
+// 100001 - bearing block left
+// this import fails since the old openscad doesn't yet support import by layer
+module bearing_block_left()
+{
+	linear_extrude(height=2.5) import("bearingblock-left.svg", id="layer1");
+}
+
+module round_box(w,l,h,r=5,$fn=16)
+{
+	hull() {
+		translate([r,r,0]) cylinder(r=r, h=h);
+		translate([w-r,r,0]) cylinder(r=r, h=h);
+		translate([w-r,l-r,0]) cylinder(r=r, h=h);
+		translate([r,l-r,0]) cylinder(r=r, h=h);
+	}
+}
+
+// 100003 compensator
+// this is one of the more important parts: it is pressed by *every key*
+// and advances the ratchet pawls.  there is webbing that is hard to print,
+// so it is moved to be on the bottom layer.
+module compensator()
+{
+	h = 241;
+	thick = 12;
+
+	render() difference()
+	{
+		// massive piece of plate...
+		cube([219, h, thick]);
+
+		// upper right corner, leaving a bit of extra webbing
+		translate([142, h-95-5, thick/2+2]) round_box(100,120,thick+2);
+		translate([142, h-95, -1]) round_box(100,120,thick+2);
+
+		// arms for the lifter, leaving some webbing
+		hull() {
+			translate([19.3,h-95,-1]) round_box(142-19.3*2-5*2,95,thick+2,5);
+			translate([5,h-25,-1]) round_box(142-5*2,95,thick+2,5);
+		};
+		translate([5,h-95-5,thick/2]) round_box(142-5*2, 95+5, thick, 5);
+
+		// the six little wells at the bottom
+		for(y=[6,6+17+5]) {
+			translate([5,y,-1]) round_box(60,17,thick+2);
+			translate([5+60+5,y,-1]) round_box(67,17,thick+2);
+			translate([5+60+5+67+5,y,-1]) round_box(72,17,thick+2);
+		}
+
+		// the three big wells across the top, with partial webbing
+		translate([5,h-191,-1]) round_box(65,191-110, thick+2);
+		translate([5,h-191,thick/2]) round_box(65,191-110+5, thick+2);
+
+		translate([5+65+5,h-191,-1]) round_box(66,191-110, thick+2);
+		translate([5+65+5,h-191,thick/2]) round_box(66,191-110+5, thick+2);
+
+		translate([5+65+5+66+5,h-191,-1]) round_box(68,191-110, thick+2);
+		translate([5+65+5+66+5,h-191,thick/2]) round_box(68,191-110+5, thick+2);
+
+		// clearance cutout on left side
+		translate([19.3,h-129.5,-1]) cylinder(r=18, h=thick+2);
+
+		// set screws for the ratchet axle
+		translate([2.5,h-5,-1]) cylinder(d=1.5,h=thick+2);
+		translate([142-2.5,h-5,-1]) cylinder(d=1.5,h=thick+2);
+
+		// ratchet axle
+		translate([-1,h-5,thick/2]) rotate([0,90,0]) cylinder(d=6,h=h);
+
+		// pivots
+		translate([-1,h-102.5,thick/2]) rotate([0,90,0]) cylinder(d=5, h=2+1, $fn=30);
+		translate([219+1,h-102.5,thick/2]) rotate([0,-90,0]) cylinder(d=5, h=2+1, $fn=30);
+	}
+
+
+	// add back in the curvy clearance arm
+	translate([19.3,h-129.5,0])
+	render() difference() {
+		cylinder(r=23,h=thick);
+		translate([0,0,-1]) cylinder(r=18,h=thick+2);
+		translate([-19.3+5,-50,-1]) cube([100,100,thick+2]);
+	}
+
+	// spring thingies
+	spring_h = h - 102.5 - 78.5;
+	translate([-8,spring_h,0])
+	render() difference()
+	{
+		cube([8,5,6]);
+		translate([2,-1,3]) rotate([-90,0,0]) cylinder(d=2, h=10);
+	}
+	translate([219,spring_h,0])
+	render() difference()
+	{
+		cube([8,5,6]);
+		translate([6,-1,3]) rotate([-90,0,0]) cylinder(d=2, h=10);
+	}
+
+	// angled pawl stops
+	pawl_h = h - 102.5 - 107 - 12;
+	translate([-12,pawl_h,0])
+	render() difference() {
+		translate([0,0,0]) cube([12,12,10]);
+		translate([20,0,5.5])
+		rotate([180+5,0,180]) cube([30,20,20]);
+	}
+
+	translate([219,pawl_h,0])
+	render() difference() {
+		translate([0,0,0]) cube([12,12,10]);
+		translate([20,0,5.5])
+		rotate([180+5,0,180]) cube([30,20,20]);
+	}
+	
+}
+
 
 /*
 centering_device();
 translate([0,0,2]) translate(centering_device_coords) roll_centering_device();
 */
+
+//bearing_block_left();
+
+compensator();
