@@ -17,12 +17,13 @@ module countersink(d,h,h2=1, $fn=30)
 }
 
 // page 1
-module kerfring()
+module kerfring(pocket_sized=0)
 {
 	render() difference()
 	{
-		hollow_cylinder(74.2, 63.8, 2);
+		hollow_cylinder(74.2, 63.8, 2, $fn=360);
 
+		if (!pocket_sized)
 		for(angle=[0,90+6,180,270+6])
 			rotate([0,0,angle])
 			translate([+69/2,0,2])
@@ -42,13 +43,16 @@ module kerfring()
 // 400002 page 2: through hole at 11, cutout at 17
 // 400020 page 20: through hole at 01, cutout at 07
 // 400021 page 21: through hole at 23, cutout at 03
-module digitring(which=23)
+module digitring(which=23,pocketsized=0)
 {
+	inner_d = 60 + 0.25; // add some slop
 	render() difference()
 	{
-		cylinder(d=75, h=8.5 + 1.5, $fn=26);
-		translate([0,0,-1]) cylinder(d=60, h=8.5 + 1.5 + 2, $fn=120);
+		cylinder(d=75, h=8.5 + (pocket_sized ? 0 : 1.5), $fn=26);
+	
+		translate([0,0,-1]) cylinder(d=inner_d, h=8.5 + 1.5 + 2, $fn=360);
 
+		// locating holes for the letter adjustments
 		for(i=[1:26])
 		{
 			rotate([0,0,90 - (i+2)*360/26])
@@ -70,10 +74,11 @@ module digitring(which=23)
 			text((i < 10 ? str("0",i) : str(i)), size=4, halign="center", valign="center");
 		}
 
-		// carry ring
+		// carry ring cutout
 		translate([63.7/2 + 20,0,8.5]) cylinder(r=20,h=5);
 
 		// screw holes for kerf ring
+		if (!pocket_sized)
 		for(a=[90-48,90+48,270-48,270+48])
 		{
 			rotate([0,0,a])
@@ -82,7 +87,7 @@ module digitring(which=23)
 	}
 
 	// spacer
-	translate([0,0,8.5]) hollow_cylinder(63.7, 60, 11.8-8.5);
+	translate([0,0,8.5]) hollow_cylinder(63.7, inner_d, 11.8-8.5, $fn=360);
 
 }
 

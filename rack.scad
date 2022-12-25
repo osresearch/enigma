@@ -3,7 +3,7 @@
 // ??? page ?
 module _driver(thick=0)
 {
-	h = 2;
+	h = 3;
 	h2 = thick ? 6.4 : h;
 
 	render() difference()
@@ -42,7 +42,7 @@ module _driver(thick=0)
 
 module driver(thick=0)
 {
-	translate([0,0,2]) mirror([0,0,1]) _driver(thick);
+	mirror([1,0,0]) _driver(thick);
 }
 
 
