@@ -1,5 +1,11 @@
 // rack pdf designs
 
+module mirror_dupe(axis=[1,0,0])
+{
+	children();
+	mirror(axis) children();
+}
+
 // ??? page ?
 module _driver(thick=0)
 {
@@ -123,7 +129,14 @@ module bearing_block_left()
 {
 	linear_extrude(height=2.5) import("bearingblock-left.svg");
 }
+
 // 100012 - bearing block right
+// center shaft is 65,63.5 from bottom *RIGHT* corner
+// which is is 97-65,63.5 from the bottom *LEFT* corner, which is the origin
+bearing_block_len = 97;
+bearing_block_center_x = 65;
+bearing_block_center_y = 63.5;
+
 module bearing_block_right()
 {
 	linear_extrude(height=2.5) import("bearingblock-right.svg");
@@ -143,11 +156,15 @@ module round_box(w,l,h,r=5,$fn=16)
 // this is one of the more important parts: it is pressed by *every key*
 // and advances the ratchet pawls.  there is webbing that is hard to print,
 // so it is moved to be on the bottom layer.
+//
 module compensator()
 {
 	h = 241;
 	thick = 12;
+	axle_pos = h - 102.5;
 
+translate([5,-axle_pos,-thick/2])
+{
 	render() difference()
 	{
 		// massive piece of plate...
@@ -192,8 +209,8 @@ module compensator()
 		translate([-1,h-5,thick/2]) rotate([0,90,0]) cylinder(d=6,h=h);
 
 		// pivots
-		translate([-1,h-102.5,thick/2]) rotate([0,90,0]) cylinder(d=5, h=2+1, $fn=30);
-		translate([219+1,h-102.5,thick/2]) rotate([0,-90,0]) cylinder(d=5, h=2+1, $fn=30);
+		translate([-1,axle_pos,thick/2]) rotate([0,90,0]) cylinder(d=5, h=2+1, $fn=30);
+		translate([219+1,axle_pos,thick/2]) rotate([0,-90,0]) cylinder(d=5, h=2+1, $fn=30);
 	}
 
 
@@ -235,16 +252,59 @@ module compensator()
 		translate([20,0,5.5])
 		rotate([180+5,0,180]) cube([30,20,20]);
 	}
+}
 	
 }
 
 
-/*
-centering_device();
-translate([0,0,2]) translate(centering_device_coords) roll_centering_device();
-*/
 
-translate([-10,219,0]) rotate([90,0,+90]) bearing_block_left();
-translate([130,219,0]) rotate([90,0,+90]) bearing_block_right();
 
+include <rotor.scad>
+module bearing_assembly()
+{
+	// the official baseplate is 159 apart on the bearing block mounts
+	translate([-bearing_block_len,0,-159]) bearing_block_left();
+	translate([-bearing_block_len,0,-5]) bearing_block_right();
+
+	translate([-bearing_block_center_x,bearing_block_center_y,0]) {
+		translate([0,0,-50]) animated_assembly(0,0);
+		translate([0,0,-50-27]) animated_assembly(0,0);
+		translate([0,0,-50-27*2]) animated_assembly(0,0);
+	}
+}
+
+
+// 10002
+// this is an enormous waste of material; don't print it!
+// everything is relative to the center line, so center the plate
+compensator_pos = [-226/2,287-125.5, 29];
+bearingblock_pos = [-257/2+3+6,287-107, 6];
+
+module baseplate()
+{
+	translate([-257/2,0,0])
+	cube([257,287,6]);
+
+	// compensator brackets
+	mirror_dupe()
+	translate(compensator_pos)
+	render() difference()
+	{
+		translate([-6/2,-18/2,-29]) cube([6,18,40]);
+		rotate([0,90,0]) cylinder(d=6, h=10);
+	}
+
+	// bearing block brackets, 159mm apart (inside)
+	translate(bearingblock_pos) {
+		cube([4,101,26]);
+		translate([159,0,0]) cube([4,101,26]);
+	}
+}
+
+color("gold") baseplate();
+
+color("pink") translate(compensator_pos)
 compensator();
+
+translate(bearingblock_pos)
+rotate([90,0,-90]) bearing_assembly();
