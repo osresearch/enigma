@@ -354,8 +354,8 @@ module steel_bushing()
 
 module animated_assembly(t,which=11)
 {
-translate([0,0,22 + t * 26]) color("red") rotate([0,0,+42]) kerfring();
-translate([0,0,11.7 + t * 7]) color("silver") digitring(which);
+translate([0,0,24 + t * 26]) color("red") rotate([0,0,+42]) kerfring();
+translate([0,0,13.7 + t * 7]) color("silver") digitring(which);
 
 translate([0,0,0])
 color("silver")
