@@ -119,10 +119,14 @@ module roll_centering_device()
 }
 
 // 100001 - bearing block left
-// this import fails since the old openscad doesn't yet support import by layer
 module bearing_block_left()
 {
-	linear_extrude(height=2.5) import("bearingblock-left.svg", id="layer1");
+	linear_extrude(height=2.5) import("bearingblock-left.svg");
+}
+// 100012 - bearing block right
+module bearing_block_right()
+{
+	linear_extrude(height=2.5) import("bearingblock-right.svg");
 }
 
 module round_box(w,l,h,r=5,$fn=16)
@@ -240,6 +244,7 @@ centering_device();
 translate([0,0,2]) translate(centering_device_coords) roll_centering_device();
 */
 
-//bearing_block_left();
+translate([-10,219,0]) rotate([90,0,+90]) bearing_block_left();
+translate([130,219,0]) rotate([90,0,+90]) bearing_block_right();
 
 compensator();
