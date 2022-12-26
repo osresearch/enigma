@@ -172,7 +172,7 @@ module compensator()
 	thick = 12;
 	axle_pos = h - 102.5;
 
-translate([5/2,-axle_pos,-thick/2])
+translate([0,-axle_pos,-thick/2])
 {
 	render() difference()
 	{
@@ -296,16 +296,58 @@ module bearing_assembly()
 // 10002
 // this is an enormous waste of material; don't print it!
 // everything is relative to the center line, so center the plate
-compensator_pos = [-226/2,287-125.5, 29];
-bearingblock_pos = [-257/2+3+6,287-107, 0];
+baseplate_w = 257;
+baseplate_h = 287;
+baseplate_center = baseplate_w/2;
+baseplate_screws = [
+	[baseplate_center+117, 178, 5], // not sure on dimension
+	[baseplate_center-226/2, 271.5, 5], // not sure on x position
+
+	[baseplate_center-70, 95.5, 3.2],
+	[baseplate_center+78, 95.5, 3.2],
+
+	[baseplate_center-100, 133.5, 3.2],
+	[baseplate_center+91.5, 133.5, 3.2],
+
+	[baseplate_center-3.5, 114.5, 3.2],
+	[baseplate_center+4.0, 40.0, 4.2],
+
+	[baseplate_center-241/2, 100.5, 4],
+	[baseplate_center+241/2, 100.5, 4],
+
+	[baseplate_center-230/2, 48.5, 4.2],
+	[baseplate_center+230/2, 48.5, 4.2],
+
+	[baseplate_center-227/2, 14, 5],
+	[baseplate_center+227/2, 14, 5],
+
+	[baseplate_center-226/2, 26.0, 4.2],
+	[baseplate_center+226/2, 26.0, 4.2],
+	[baseplate_center-226/2, 70.5, 4.2],
+	[baseplate_center+226/2, 70.5, 4.2],
+];
+
+compensator_pos = [-219/2,baseplate_h-125.5, 29];
+bearingblock_pos = [-baseplate_center+3+6,baseplate_h-107, 0];
+
 
 module baseplate()
 {
-	color("gray")
-	translate([-257/2,0,0])
-	cube([257,287,6]);
 
-	// compensator brackets
+	color("gray")
+	translate([-baseplate_w/2,0,0])
+	render() difference()
+	{
+		cube([baseplate_w,baseplate_h,6]);
+
+		for(screw=baseplate_screws)
+		{
+			translate([screw[0],screw[1],-1])
+			cylinder(d=screw[2], h=6+2, $fn=16);
+		}
+	}
+
+	// compensator brackets are 219 on the inside
 	mirror_dupe()
 	translate(compensator_pos)
 	render() difference()
