@@ -1,11 +1,5 @@
 // rack pdf designs
-include <rotor.scad>
-
-module mirror_dupe(axis=[1,0,0])
-{
-	children();
-	mirror(axis) children();
-}
+include <util.scad>
 
 // ??? page ?
 module _driver(thick=0)
@@ -149,16 +143,6 @@ bearing_block_center_y = 63.5;
 module bearing_block_right()
 {
 	linear_extrude(height=2.5) import("bearingblock-right.svg");
-}
-
-module round_box(w,l,h,r=5,$fn=16)
-{
-	hull() {
-		translate([r,r,0]) cylinder(r=r, h=h);
-		translate([w-r,r,0]) cylinder(r=r, h=h);
-		translate([w-r,l-r,0]) cylinder(r=r, h=h);
-		translate([r,l-r,0]) cylinder(r=r, h=h);
-	}
 }
 
 // 100003 compensator
@@ -338,7 +322,7 @@ module baseplate()
 	translate([-baseplate_w/2,0,0])
 	render() difference()
 	{
-		cube([baseplate_w,baseplate_h,6]);
+		box(baseplate_w, baseplate_h, 6, r=4);
 
 		for(screw=baseplate_screws)
 		{
@@ -352,7 +336,7 @@ module baseplate()
 	translate(compensator_pos)
 	render() difference()
 	{
-		translate([-6,-18/2,-29]) cube([6,18,40]);
+		box(6,18,40, pos=[0,0,-29], ref="-c+");
 		translate([-6,0,0]) rotate([0,90,0]) countersink(6,6);
 	}
 
@@ -376,7 +360,7 @@ module baseplate()
 		{
 			union() {
 				translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=5.5, h=13);
-				translate([-11/2,0,6]) cube([11,13,10]);
+				box(11,13,10, pos=[0,0,6], ref="c++");
 			}
 			translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=6.2, h=19.1);
 		}
