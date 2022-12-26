@@ -56,7 +56,7 @@ module digitring(which=23,pocketsized=0)
 			translate([75/2-0.75,0,8.5/2])
 			rotate([0,90,0])
 			linear_extrude(height=1)
-			text((i < 10 ? str("0",i) : str(i)), size=4, halign="center", valign="center");
+			text((i < 10 ? str("0",i) : str(i)), size=5, halign="center", valign="center");
 		}
 
 		// carry ring cutout
@@ -90,21 +90,13 @@ module toothed_wheel1()
 	render() difference()
 	{
 		union() {
-			for(i=[1:26])
-			{
-				rotate([0,0,i*360/26])
-				translate([od/2 - 3,0,0])
+			spin(26, r=od/2-3)
 				cylinder(r=3,h=h,$fn=20);
-			}
 			cylinder(d=od-3, h=h);
 		}
 
-		for(i=[1:26])
-		{
-			rotate([0,0,(i+0.5)*360/26])
-			translate([od/2 + 2,0,-1])
+		spin(26, [od/2 + 2, 0, -1], offset=0.5)
 			cylinder(r=5,h=3.6,$fn=20);
-		}
 	}
 }
 
@@ -282,16 +274,12 @@ module coping()
 		hollow_cylinder(52.9, 24.4, 3.6, $fn=120);
 		
 		// contacts
-		for(i=[1:26])
-			rotate([0,0,(i+0.5)*360/26])
-			translate([45.2/2,0,0])
+		spin(26, r=45.2/2, offset=0.5)
 			cylinder(d=2.1, h=5, $fn=16);
 
 		// pins to connect to the center toothed wheel
 		// that part has them at 33.2/2 radius, this has 17.4?
-		for(a=[90,-30,-150])
-			rotate([0,0,a])
-			translate([17.4,0,0])
+		spin(3, r=17.4, offset=0.5)
 			countersink(3.1, 10);
 	}
 
@@ -309,22 +297,18 @@ module rollplate()
 		hollow_cylinder(55.8, 9, 3.5);
 
 		// contacts
-		for(i=[1:26])
-			rotate([0,0,(i+0.5)*360/26])
-			{
-				translate([45.2/2,0,-1])
-				cylinder(d=2.1, h=5, $fn=16);
+		spin(26, [45.2/2,0,-1], offset=0.5)
+		{
+			cylinder(d=2.1, h=5, $fn=16);
 
-				translate([45.2/2,0,2])
-				cylinder(d=4, h=5, $fn=16);
-			}
+			translate([0,0,2])
+			cylinder(d=4, h=5, $fn=16);
+		}
 
 		// pins to connect to the center toothed wheel
 		// these have been added at 12mm centers
-		for(a=[90,-30,-150])
-			rotate([0,180,a])
-			translate([12,0,-3.5])
-			countersink(3.1, 10);
+		spin(3, r=12, offset=0.0)
+			countersink(3.1, 3.5, reverse=true);
 	}
 }
 
@@ -368,3 +352,57 @@ translate([0,0,-15])
 animated_assembly(sin(180*$t)*sin(180*$t)*2);
 */
 
+
+// 100106 access roll (defined in rack.pdf)
+// 100014 ring what is the purpose of the ring?
+// 100013 plate (replaced with PCB?)
+
+// 100011 roll
+module access_roll_housing()
+{
+	render() difference()
+	{
+		cylinder(d=60, h=16.5, $fn=180);
+		translate([0,0,1.5]) cylinder(d=57, h=16.4, $fn=180);
+
+		// three M3 holes at 120deg
+		spin(3,[30/2,0,-1])
+			cylinder(d=3, h=5, $fn=16);
+
+
+		spin(4, pos=[60/2-5,0,16.5-2], offset=0.5)
+			rotate([0,90,0])
+			cylinder(d=2.2, h=10, $fn=16);
+
+		// access hole
+		box(10,20,10, r=2, rot=[90,0,0], pos=[0,-60/2,3], ref="c+c");
+		
+	}
+
+	spin(3,r=30/2)
+		hollow_cylinder(6,3, 12.5);
+
+	render() difference()
+	{
+		hollow_cylinder(9-0.1, 5, 18.6);
+		box(10,10,10, pos=[0,0,16.5], ref="+c+");
+	}
+}
+
+module access_plate()
+{
+	render() difference()
+	{
+		hollow_cylinder(51, 9, h=4, $fn=360);
+		spin(26, pos=[45.2/2,0,-1])
+			cylinder(d=2.1, h=4+2);
+		spin(3, r=30/2)
+			countersink(3, 4);
+	}
+}
+
+module access_roll()
+{
+	translate([0,0,12.5]) access_plate();
+	access_roll_housing();
+}

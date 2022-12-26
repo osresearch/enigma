@@ -262,7 +262,9 @@ module bearing_assembly()
 		translate([0,0,136]) rotate([0,180,360/26/2]) animated_assembly(0,0);
 		translate([0,0,136-27]) rotate([0,180,360/26/2]) animated_assembly(0,0);
 		translate([0,0,136-27*2]) rotate([0,180,360/26/2]) animated_assembly(0,0);
+		translate([0,0,159-2.5]) rotate([0,180,-90]) access_roll();
 	}
+
 
 	// centering assembly is 4,29 on the bearing plate
 	translate([bearing_block_len-4,29,00])
@@ -282,7 +284,9 @@ module bearing_assembly()
 // everything is relative to the center line, so center the plate
 baseplate_w = 257;
 baseplate_h = 287;
+baseplate_thick = 10;
 baseplate_center = baseplate_w/2;
+
 baseplate_screws = [
 	[baseplate_center+117, 178, 5], // not sure on dimension
 	[baseplate_center-226/2, 271.5, 5], // not sure on x position
@@ -322,12 +326,12 @@ module baseplate()
 	translate([-baseplate_w/2,0,0])
 	render() difference()
 	{
-		box(baseplate_w, baseplate_h, 6, r=4);
+		box(baseplate_w, baseplate_h, baseplate_thick, r=4);
 
 		for(screw=baseplate_screws)
 		{
-			translate([screw[0],screw[1],-1])
-			cylinder(d=screw[2], h=6+2, $fn=16);
+			translate([screw[0],screw[1],0])
+			countersink(screw[2], baseplate_thick+2, $fn=16);
 		}
 	}
 
@@ -345,14 +349,17 @@ module baseplate()
 	translate([159/2,0,0])
 	mirror_dupe() translate([159/2,0,0])
 	render() difference() {
-		cube([4,101,26]);
+		union() {
+			cube([4,101,26]);
+			box(6,101,baseplate_thick+2, ref="-++");
+		}
 		translate([0,101/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
 		translate([0,101/2+66.5/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
 		translate([0,101/2-66.5/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
 	}
 
 	// springs for the centering devices
-	translate([-257/2,287,0])
+	translate([-baseplate_center,baseplate_h,0])
 	for(i=[0:3])
 	{
 		translate([48+11/2+27*i,-38.5-13/2,0])
@@ -360,7 +367,7 @@ module baseplate()
 		{
 			union() {
 				translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=5.5, h=13);
-				box(11,13,10, pos=[0,0,6], ref="c++");
+				box(11,13,15.5, ref="c++");
 			}
 			translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=6.2, h=19.1);
 		}
@@ -368,13 +375,24 @@ module baseplate()
 
 	// stops for the ratchet pawls, 1000112
 	// this merges the 10x3mm 100045 and 10x11mm high 100037 into a single unit
-	translate([-257/2,287,0])
-	for(i=[0:2])
+	// also adds a fourth stop for u-boat enigma
+	translate([-baseplate_center,baseplate_h,baseplate_thick])
+	for(i=[0:3])
 	{
-		translate([89+i*27,-(287-236),6])
+		translate([89+i*27-27,-(baseplate_h-236),0])
 		cylinder(d=10, h=3 + 11);
 	}
 	
+	// add the compensator stops (100111), with a 5 degree slant
+	// 5.1m post + 10x3mm cap
+	// this will allow the compensator angled stop to be redone with a bottom flat
+	mirror_dupe()
+	translate([230/2,48.5,0])
+	render() difference()
+	{
+		cylinder(d=10, h=12 + baseplate_thick);
+		translate([0,0,3.5 + 10+baseplate_thick]) rotate([5,0,0]) cube([20,20,20], center=true);
+	}
 }
 
 module compensator_assembly()
