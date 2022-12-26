@@ -56,7 +56,7 @@ module digitring(which=23,pocketsized=0)
 			translate([75/2-0.75,0,8.5/2])
 			rotate([0,90,0])
 			linear_extrude(height=1)
-			text((i < 10 ? str("0",i) : str(i)), size=5, halign="center", valign="center");
+			text((i < 10 ? str("0",i) : str(i)), size=5.5, halign="center", valign="center");
 		}
 
 		// carry ring cutout
@@ -405,4 +405,53 @@ module access_roll()
 {
 	translate([0,0,12.5]) access_plate();
 	access_roll_housing();
+}
+
+// the reflector can probably also be replaced with a PCB
+// there were three:
+// Reflector A 	EJMZALYXVBWFCRQUONTSPIKHGD 		
+// Reflector B 	YRUHQSLDPXNGOKMIEBFZCWVJAT 		
+// Reflector C 	FVPJIAOYEDRZXWGCTKUQSBNMHL 	
+// the housing can be removed from the bearing blocks
+// and replaced with an alternate reflector
+
+// 300002 page 2
+module reflector_cabinet()
+{
+	render() difference()
+	{
+		cylinder(d=75, h=38.9, $fn=360);
+
+		translate([0,0,38.9-37.4])
+		cylinder(d=72, h=38.9, $fn=360);
+
+		translate([0,-34.5,-1])
+		cylinder(d=3, h=5, $fn=16);
+
+		spin(2, pos=[75/2,0,38.9], offset=0.5)
+		{
+			translate([0,0,-12])
+			rotate([0,-90,0])
+			countersink(2.2, 3);
+
+			translate([0,0,-4])
+			rotate([0,-90,0])
+			countersink(2.2, 3);
+		}
+
+		// large cutout
+		rotate([0,0,-30])
+		translate([0,0,-1])
+		render() intersection()
+		{
+			cylinder(d=51, h=5, $fn=60);
+			cube([30,51,5], center=true);
+		}
+	}
+}
+
+module reflector_assembly()
+{
+	reflector_cabinet();
+	translate([0,0,38.9 - 4]) coping();
 }

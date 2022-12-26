@@ -259,6 +259,7 @@ module bearing_assembly()
 	%translate([0,0,159-2.5]) bearing_block_right();
 
 	translate([bearing_block_len - bearing_block_center_x,bearing_block_center_y,0]) {
+		%translate([0,0,10]) rotate([0,0,0]) reflector_assembly();
 		translate([0,0,136]) rotate([0,180,360/26/2]) animated_assembly(0,0);
 		translate([0,0,136-27]) rotate([0,180,360/26/2]) animated_assembly(0,0);
 		translate([0,0,136-27*2]) rotate([0,180,360/26/2]) animated_assembly(0,0);
