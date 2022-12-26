@@ -3,12 +3,13 @@
  */
 include <rotor.scad>
 include <rack.scad>
+include <keyboard.scad>
 
+if (1) {
 scale(0.5)
 {
 baseplate();
 
-if (1) {
 translate(compensator_pos)
 rotate([5,0,0])
 compensator_assembly();
@@ -19,3 +20,5 @@ rotate([90,0,90])
 bearing_assembly();
 }
 }
+
+//input_board();
