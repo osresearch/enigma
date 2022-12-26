@@ -58,3 +58,11 @@ module box(w,l,h,r=0,pos=[0,0,0],rot=[0,0,0],ref="+++")
 			round_box(w,l,h,r, center=true);
 	}
 }
+
+module spin(n,pos=[0,0,0],r=0,offset=0)
+{
+	for(i=[0:n-1])
+		rotate([0,0,(i+offset)*360/n])
+		translate(r == 0 ? pos : [r,0,0])
+		children();
+}
