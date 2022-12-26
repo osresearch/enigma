@@ -56,7 +56,7 @@ module driver(thick=0)
 // 100039 page 39 of rack
 // this one is really bad for figuring out what is going on where.
 // all of the things are just eyeballed
-centering_device_coords = [-8.6, 47.4, 2];
+centering_device_coords = [-8.6, 47.4, 3];
 
 module _centering_device(h)
 {
@@ -72,7 +72,8 @@ module _centering_device(h)
 	}
 
 	cylinder(d=9, h=2*h, $fn=30);
-	translate(centering_device_coords) cylinder(d=6, h=h, $fn=30);
+	translate(centering_device_coords)
+	translate([0,0,-h]) cylinder(d=6, h=h, $fn=30);
 
 	render() intersection()
 	{
@@ -102,7 +103,7 @@ module _centering_device(h)
 
 module centering_device()
 {
-	h = 2;
+	h = centering_device_coords[2];
 	render() difference() {
 		_centering_device(h);
 
@@ -171,7 +172,7 @@ module compensator()
 	thick = 12;
 	axle_pos = h - 102.5;
 
-translate([5,-axle_pos,-thick/2])
+translate([5/2,-axle_pos,-thick/2])
 {
 	render() difference()
 	{
@@ -184,7 +185,7 @@ translate([5,-axle_pos,-thick/2])
 
 		// arms for the lifter, leaving some webbing
 		hull() {
-			translate([19.3,h-95,-1]) round_box(142-19.3*2-5*2,95,thick+2,5);
+			translate([10,h-95,-1]) round_box(142-10*2-5*2,95,thick+2,5);
 			translate([5,h-25,-1]) round_box(142-5*2,95,thick+2,5);
 		};
 		translate([5,h-95-5,thick/2]) round_box(142-5*2, 95+5, thick, 5);
@@ -217,8 +218,8 @@ translate([5,-axle_pos,-thick/2])
 		translate([-1,h-5,thick/2]) rotate([0,90,0]) cylinder(d=6,h=h);
 
 		// pivots
-		translate([-1,axle_pos,thick/2]) rotate([0,90,0]) cylinder(d=5, h=2+1, $fn=30);
-		translate([219+1,axle_pos,thick/2]) rotate([0,-90,0]) cylinder(d=5, h=2+1, $fn=30);
+		translate([-1,axle_pos,thick/2]) rotate([0,90,0]) cylinder(d=5, h=20+1, $fn=30);
+		translate([219+1,axle_pos,thick/2]) rotate([0,-90,0]) cylinder(d=5, h=20+1, $fn=30);
 	}
 
 
@@ -269,8 +270,8 @@ translate([5,-axle_pos,-thick/2])
 
 module bearing_assembly()
 {
-	// the official baseplate is 159 apart on the bearing block mounts
-	translate([0,0,0]) bearing_block_left();
+	// the official baseplate is 159 apart on the inside of the bearing block mounts
+	color("green") translate([0,0,0]) bearing_block_left();
 	%translate([0,0,159-2.5]) bearing_block_right();
 
 	translate([bearing_block_len - bearing_block_center_x,bearing_block_center_y,0]) {
@@ -296,7 +297,7 @@ module bearing_assembly()
 // this is an enormous waste of material; don't print it!
 // everything is relative to the center line, so center the plate
 compensator_pos = [-226/2,287-125.5, 29];
-bearingblock_pos = [-257/2+3+6,287-107, 6];
+bearingblock_pos = [-257/2+3+6,287-107, 0];
 
 module baseplate()
 {
@@ -309,26 +310,26 @@ module baseplate()
 	translate(compensator_pos)
 	render() difference()
 	{
-		translate([-6/2,-18/2,-29]) cube([6,18,40]);
-		translate([6,0,0]) rotate([0,-90,0]) cylinder(d=6, h=10);
+		translate([-6,-18/2,-29]) cube([6,18,40]);
+		translate([-6,0,0]) rotate([0,90,0]) countersink(6,6);
 	}
 
 	// bearing block brackets, 159mm apart (inside)
 	translate(bearingblock_pos)
 	translate([159/2,0,0])
-	mirror_dupe() translate([-159/2-4,0,0])
+	mirror_dupe() translate([159/2,0,0])
 	render() difference() {
 		cube([4,101,26]);
-		translate([0,101/2,22]) rotate([0,90,0]) countersink(4.2, 20);
-		translate([0,101/2+66.5/2,22]) rotate([0,90,0]) countersink(4.2, 20);
-		translate([0,101/2-66.5/2,22]) rotate([0,90,0]) countersink(4.2, 20);
+		translate([0,101/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
+		translate([0,101/2+66.5/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
+		translate([0,101/2-66.5/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
 	}
 
 	// springs for the centering devices
 	translate([-257/2,287,0])
 	for(i=[0:3])
 	{
-		translate([48+27*i,-38.5+13/2,0])
+		translate([48+11/2+27*i,-38.5-13/2,0])
 		render() difference() 
 		{
 			union() {
@@ -357,20 +358,9 @@ module compensator_assembly()
 	translate([5,102.5-5,0]) {
 		rotate([0,90,0]) cylinder(d=5, h=140);
 
-		translate([68,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(1);
-		translate([68+27,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(1);
-		translate([68+54,0,0]) rotate([+5,0,0]) rotate([90,0,90]) driver(0);
+		translate([67,0,0]) rotate([-15,0,0]) rotate([90,0,90]) driver(1);
+		translate([67+27,0,0]) rotate([-15,0,0]) rotate([90,0,90]) driver(1);
+		translate([67+54,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(0);
 	}
 }
-
-baseplate();
-
-translate(compensator_pos)
-rotate([-2,0,0])
-compensator_assembly();
-
-translate(bearingblock_pos)
-translate([0,(55.5-48.5)/2,22 - 9.5])
-rotate([90,0,90])
-bearing_assembly();
 

@@ -9,11 +9,16 @@ module hollow_cylinder(d1,d2,h,$fn=60)
 	}
 }
 
-module countersink(d,h,h2=1, $fn=30)
+module countersink(d,h,h2=1, $fn=30, reverse=0)
 {
-	//translate([0,0,-5]) cylinder(d=d+sqrt(2), h=5);
-	translate([0,0,-0.1]) cylinder(d2=d, d1=d+h2*sqrt(2), h=h2+.1);
-	cylinder(d=d, h=h);
+	if (reverse)
+	{
+		translate([0,0,h-h2]) cylinder(d1=d, d2=d+h2*sqrt(2), h=h2+.1);
+		translate([0,0,-0.1]) cylinder(d=d, h=h+0.1);
+	} else {
+		translate([0,0,-0.1]) cylinder(d2=d, d1=d+h2*sqrt(2), h=h2+.1);
+		cylinder(d=d, h=h);
+	}
 }
 
 // page 1
@@ -48,7 +53,7 @@ module digitring(which=23,pocketsized=0)
 	inner_d = 60 + 0.25; // add some slop
 	render() difference()
 	{
-		cylinder(d=75, h=8.5 + (pocket_sized ? 0 : 1.5), $fn=26);
+		cylinder(d=75, h=8.5 + (pocketsized ? 0 : 1.5), $fn=26);
 	
 		translate([0,0,-1]) cylinder(d=inner_d, h=8.5 + 1.5 + 2, $fn=360);
 
@@ -78,7 +83,7 @@ module digitring(which=23,pocketsized=0)
 		translate([63.7/2 + 20,0,8.5]) cylinder(r=20,h=5);
 
 		// screw holes for kerf ring
-		if (!pocket_sized)
+		if (!pocketsized)
 		for(a=[90-48,90+48,270-48,270+48])
 		{
 			rotate([0,0,a])
