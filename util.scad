@@ -75,10 +75,10 @@ module box(w,l,h,r=0,pos=[0,0,0],rot=[0,0,0],ref="+++")
 	}
 }
 
-module spin(n,pos=[0,0,0],r=0,offset=0)
+module spin(n,pos=[0,0,0],r=0,offset=0,phase=0)
 {
 	for(i=[0:n-1])
-		rotate([0,0,(i+offset)*360/n])
+		rotate([0,0,phase + (i+offset)*360/n])
 		translate(r == 0 ? pos : [r,0,0])
 		children();
 }
@@ -110,8 +110,13 @@ module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir
 				else
 					countersink(d,h, $fn=$fn);
 			} else {
-				translate([0,0,-0.1])
-				cylinder(d=d,h=h+0.2, $fn=$fn);
+				if (dir == -1)
+					translate([0,0,+0.1])
+					mirror([0,0,1])
+					cylinder(d=d,h=h+0.2, $fn=$fn);
+				else
+					translate([0,0,-0.1])
+					cylinder(d=d,h=h+0.2, $fn=$fn);
 			}
 		}
 	}
