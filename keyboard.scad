@@ -175,6 +175,52 @@ module contactor_plate()
 	}
 }
 
+// derived from the three buttons, includes keycap
+module _button_template(h=64, mids=[37], include_button=1)
+{
+	render() difference()
+	{
+		cylinder(d=6, h=h, $fn=60);
+
+		// slat and pins at the top if we are not including the button
+		if (!include_button)
+		{
+			translate([0,0,h+0.1])
+			box(10, 2, 10+0.1, ref="cc-");
+
+			translate([0,5,h-2.5]) rotate([90,0,0]) drill(1, 10);
+			translate([0,5,h-7.5]) rotate([90,0,0]) drill(1, 10);
+		}
+
+		// small flat on both side with M3 through it
+		for(mid=mids) {
+			translate([0,0,mid])
+			{
+				mirror_dupe()
+				box(5,3,8, ref="+cc", pos=[5/2,0,0]);
+
+				rotate([0,90,0]) cylinder(d=3, h=10, center=true, $fn=30);
+			}
+		}
+
+		// big flat on one side
+		translate([1.5,0,5])
+		box(5,5,27-5, ref="+c+");
+
+		// and recessed thingy in the bottom
+		drill(3, 1.5);
+		translate([0,0,1]) cylinder(d1=4, d2=3, h=1.5, $fn=30);
+	}
+
+	if (include_button)
+		translate([0,0,h])
+		cylinder(d=12, h=2, $fn=60);
+}
+
+module button_short() { _button_template(64, [37]); }
+module button_medium() { _button_template(72.5, [29]); }
+module button_long() { _button_template(81, [20, 29]); }
+
 
 // 10022
 module segment_plate()
@@ -253,8 +299,31 @@ module segment_plate()
 
 module keyboard_assembly()
 {
-translate([0,40,baseplate_thick + column_short_len - (10.7-2)]) input_board();
 translate([0,40,baseplate_thick + pillar_small_len]) contactor_plate();
+translate([0,40,baseplate_thick + column_short_len - (10.7-2)])
+{
+	color("yellow") input_board();
+
+	color("silver")
+	translate([0,8.5,-45])
+	{
+		// top row keys
+		for(i=[0:8])
+			translate([-91.6+24.2*i,44.5/2,-1])
+			button_long();
+
+		// middle row
+		for(i=[0:7])
+			translate([-85+24.2*i,0/2,-1])
+			button_medium();
+
+		// bottom  row
+		for(i=[0:8])
+			translate([-102+24.2*i,-44.5/2,-1])
+			button_short();
+	}
+}
+
 
 // this might not be right
 translate([   4.0,  40.0, baseplate_thick]) pillar_small();
