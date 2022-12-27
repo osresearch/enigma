@@ -6,7 +6,7 @@ module kerfring(pocket_sized=0)
 {
 	render() difference()
 	{
-		hollow_cylinder(74.2, 63.8, 2, $fn=360);
+		hollow_cylinder(74.2, pocket_sized ? 65 : 63.8, 2, $fn=360);
 
 		if (!pocket_sized)
 		for(angle=[0,90+6,180,270+6])
@@ -30,7 +30,7 @@ module kerfring(pocket_sized=0)
 // 400021 page 21: through hole at 23, cutout at 03
 module digitring(which=23,pocketsized=0)
 {
-	inner_d = 60 + 0.25; // add some slop
+	inner_d = 60 + 1; // add some slop
 	render() difference()
 	{
 		cylinder(d=75, h=8.5 + (pocketsized ? 0 : 1.5), $fn=26);
@@ -72,7 +72,7 @@ module digitring(which=23,pocketsized=0)
 	}
 
 	// spacer
-	translate([0,0,8.5]) hollow_cylinder(63.7, inner_d, 11.8-8.5, $fn=360);
+	translate([0,0,8.5]) hollow_cylinder(pocket_sized ? 65 : 63.7, inner_d, 11.8-8.5, $fn=360);
 
 }
 
