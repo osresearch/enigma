@@ -77,6 +77,104 @@ module segment_plate()
 }
 
 
+// 100050
+// this is supposed to be made from bent sheet metal, so it isn't exactly right
+module lamp_holder()
+{
+	lamp_holder_w = 226;
+
+	render() difference() {
+		box(lamp_holder_w, 60, 2, ref="cc+");
+		countersink(5, 2, reverse=true);
+
+		for(i=[0:7])
+			drill(9.3, 2, pos=[lamp_holder_w/2-29-i*24, 0]);
+		for(i=[0:8])
+			drill(9.3, 2, pos=[lamp_holder_w/2-19-i*24, +40/2]);
+		for(i=[0:8])
+			drill(9.3, 2, pos=[lamp_holder_w/2-22-i*24, -40/2]);
+	}
+
+	mirror_dupe()
+	translate([lamp_holder_w/2,0,2])
+	rotate([0,90,0])
+	render() difference()
+	{
+		hull() {
+			box(1,1,2, pos=[0,+60/2,0], ref="+-+");
+			box(1,1,2, pos=[0,-60/2,0], ref="+++");
+			box(1,1,2, pos=[30,+60/2,0], ref="+-+");
+			box(1,1,2, pos=[30,-60/2,0], ref="+++");
+			box(1,1,2, pos=[51,+29/2,0], ref="--+");
+			box(1,1,2, pos=[51,-29/2,0], ref="-++");
+		}
+
+		dupe([
+			[51-33, +40/2],
+			[51-33,  0],
+			[51-33, -40/2],
+			[51- 6, -19/2],
+			[51- 6, +19/2],
+		])
+		drill(3.2, 2);
+	}
+}
+
+
+// merged socket bar 100061 and L section 100060
+module socket_bar()
+{
+	socket_bar_w = 223;
+	socket_bar_h = 55;
+	socket_bar_t = 4;
+
+	render() difference()
+	{
+		box(socket_bar_w, socket_bar_h, socket_bar_t, ref="cc+");
+
+		dupe([
+			[-214/2, -40/2],
+			[-214/2, +40/2],
+			[+214/2, -40/2],
+			[+214/2, +40/2],
+			[-214/2, 0],
+			[-144/2, 0],
+  			[     0, 0],
+			[+144/2, 0],
+			[+214/2, 0],
+		]);
+			drill(3.2, socket_bar_t);
+
+		for(i=[0:8])
+			drill(3, socket_bar_t, pos=[socket_bar_w/2 - 10.5 - 24*i, 40/2]);
+		for(i=[0:7])
+			drill(3, socket_bar_t, pos=[socket_bar_w/2 - 27.5 - 24*i, 0]);
+		for(i=[0:8])
+			drill(3, socket_bar_t, pos=[socket_bar_w/2 - 20.5 - 24*i, -40/2]);
+	}
+
+	// L-section
+	mirror_dupe()
+	translate([socket_bar_w/2,0,0])
+	render() difference()
+	{
+		box(3, socket_bar_h, 8, ref="+c+");
+		rotate([90,0,90])
+		dupe([
+			[-20,4.5],
+			[  0,4.5],
+			[+20,4.5],
+		])
+		drill(3, 18, tap=true);
+	}
+}
+
+// stack up of:
+// isolator plate 100062
+// lamp holder
+// socket bar 100061 + L section 100060
+// flanges
+// segment plate
 module lamp_assembly()
 {
 dupe([
@@ -89,9 +187,15 @@ dupe([
 	pillar_small();
 	
 translate([-3.5,114.5, baseplate_thick + pillar_small_len])
-rotate([0,0,180])
-translate([0,-23,0]) // center on the center screw
-segment_plate();
+{
+	rotate([0,0,180]) // spin it around
+	translate([0,-23,0]) // center on the center screw
+	segment_plate();
 
+	translate([0,8.5,33]) socket_bar();
+
+	translate([0,8.5,53.5]) lamp_holder();
+}
 
 }
+
