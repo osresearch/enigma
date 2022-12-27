@@ -18,7 +18,10 @@ translate(bearingblock_pos)
 translate([0,(55.5-48.5)/2 - 4/2,22 - 9.5])
 rotate([90,0,90])
 bearing_assembly();
+
+keyboard_assembly();
+lamp_assembly();
+
 }
 }
 
-//input_board();
