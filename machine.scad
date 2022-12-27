@@ -4,6 +4,7 @@
 include <rotor.scad>
 include <rack.scad>
 include <keyboard.scad>
+include <lamp.scad>
 
 if (1) {
 scale(0.5)
