@@ -1,7 +1,23 @@
-module mirror_dupe(axis=[1,0,0])
+module mirror_dupe(axis=[1,0,0], center=undef)
 {
 	children();
-	mirror(axis) children();
+	if (!center)
+	{
+		mirror(axis) children();
+	} else {
+		// should only translate on the mirrored axis?
+		translate(center)
+		mirror(axis)
+		translate(-center)
+		children();
+	}
+}
+
+module quad_dupe()
+{
+	mirror_dupe([0,1,0])
+	mirror_dupe([1,0,0])
+	children();
 }
 
 module hollow_cylinder(d1,d2,h,$fn=60)
@@ -66,3 +82,38 @@ module spin(n,pos=[0,0,0],r=0,offset=0)
 		translate(r == 0 ? pos : [r,0,0])
 		children();
 }
+
+
+module dupe(coords=[],z=0)
+{
+	for(pos=coords)
+	{
+		translate([pos[0], pos[1], pos[2] ? pos[2] : z])
+		children();
+	}
+}
+
+module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir=1)
+{
+	if (coords)
+	{
+		for(pos=coords)
+			drill(d,h,pos,tap=tap);
+	} else {
+		translate([pos[0], pos[1], pos[2] ? pos[2] : 0])
+		{
+			if (countersink)
+			{
+				if (dir == -1)
+					mirror([0,0,1])
+					countersink(d,h, $fn=$fn);
+				else
+					countersink(d,h, $fn=$fn);
+			} else {
+				translate([0,0,-0.1])
+				cylinder(d=d,h=h+0.2, $fn=$fn);
+			}
+		}
+	}
+}
+
