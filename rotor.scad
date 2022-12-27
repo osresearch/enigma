@@ -483,3 +483,25 @@ module shaft_holder()
 		hollow_cylinder(10, 5, 12-8);
 	}
 }
+
+// 400004 holds the rotors between the reverser and access panel
+module roll_shaft()
+{
+	total = 91.9;
+
+	cylinder(d1=4, d2=5, h=1, $fn=180);
+	translate([0,0,1])
+	cylinder(d=5, h=total-2, $fn=180);
+
+	translate([0,0,4.5])
+	cylinder(d=9, h=1.9, $fn=180);
+
+	translate([0,0,4.5+1.9])
+	cylinder(d=7, h=81.0-1, $fn=180);
+
+	translate([0,0,total-4.5-1])
+	cylinder(d1=7, d2=6, h=1, $fn=180);
+
+	translate([0,0,total-1])
+	cylinder(d1=4, d2=4, h=1, $fn=180);
+}
