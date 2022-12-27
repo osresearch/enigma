@@ -145,6 +145,45 @@ module bearing_block_right()
 	linear_extrude(height=2.5) import("bearingblock-right.svg");
 }
 
+
+// 100006 in rack.pdf
+// the outline is complex, so it is stored as an SVG at 2:1 scale
+module lever()
+{
+	render() difference() {
+		// shift it so that 0,0 is the main pivot hole
+		scale(0.5)
+		translate([-19,-51,0])
+		linear_extrude(height=4) import("lever.svg");
+
+		// make the pivot slightly oversized
+		drill(7+0.5,2);
+	}
+
+	// pivot with set screw
+	render() difference() {
+		hollow_cylinder(15, 7, 12);
+		translate([-15/2, 0, 7]) rotate([0,90,0]) drill(4, 10, tap=true);
+	}
+
+	// things to engage the "wedge"?
+	mirror_dupe([0,1,0])
+	translate([0,21.5,0])
+	{
+		cylinder(d=7, h=3.5, $fn=30);
+		cylinder(d=6, h=12, $fn=60);
+		translate([0,0,12]) sphere(d=6, $fn=30);
+	}
+
+	// lever; not positive of the offset, just guessing
+	translate([3.5,51,0])
+	render() difference()
+	{
+		box(10, 2, 15, ref="-c+");
+		translate([-5,1,15-5.5]) rotate([90,0,0]) drill(3.2, h=2);
+	}
+}
+
 // 100003 compensator
 // this is one of the more important parts: it is pressed by *every key*
 // and advances the ratchet pawls.  there is webbing that is hard to print,
@@ -260,6 +299,7 @@ module bearing_assembly()
 
 	translate([bearing_block_len - bearing_block_center_x,bearing_block_center_y,0]) {
 		translate([0,0,-2.5]) rotate([0,0,0]) shaft_holder();
+		translate([0,0,+3.5]) lever();
 		%translate([0,0,10]) rotate([0,0,0]) reflector_assembly();
 
 		translate([0,0,136-27*2]) rotate([0,180,360/26/2]) animated_assembly(0,0);
@@ -411,4 +451,5 @@ module compensator_assembly()
 		translate([67+54,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(0);
 	}
 }
+
 
