@@ -7,8 +7,6 @@ include <keyboard.scad>
 include <lamp.scad>
 
 if (1) {
-scale(0.5)
-{
 baseplate();
 
 translate(compensator_pos)
@@ -23,6 +21,7 @@ bearing_assembly();
 keyboard_assembly();
 lamp_assembly();
 
+} else scale(0.5) {
+	bearing_block_left();
+	translate([100,00,0]) bearing_block_right();
 }
-}
-
