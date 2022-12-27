@@ -455,3 +455,31 @@ module reflector_assembly()
 	reflector_cabinet();
 	translate([0,0,38.9 - 4]) coping();
 }
+
+
+// 100005 in rack pdf
+module shaft_holder()
+{
+	render() difference()
+	{
+		cylinder(d=22, h=2, $fn=60);
+		spin(3, r=14/2, phase=90)
+			drill(3.2, 2);
+	}
+
+	render() difference()
+	{
+		cylinder(d=7, h=52.5, $fn=60);
+
+		// make the shaft holder at the top
+		translate([0,0,52.5])
+		{
+			drill(5, 8, dir=-1);
+			box(10,10,5.5+0.1, ref="c+-", pos=[0,0,0.1]);
+		}
+
+		// subtract out a small round notch
+		translate([0,0,8+2])
+		hollow_cylinder(10, 5, 12-8);
+	}
+}
