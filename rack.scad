@@ -1,6 +1,16 @@
 // rack pdf designs
 include <util.scad>
 
+baseplate_w = 257;
+baseplate_h = 287;
+baseplate_thick = 10;
+baseplate_center = baseplate_w/2;
+
+compensator_w = 219;
+compensator_pos = [-compensator_w/2,baseplate_h-125.5, 29];
+bearingblock_pos = [-baseplate_center+3+6,baseplate_h-107, 0];
+
+
 // ??? page ?
 module _driver(thick=0)
 {
@@ -200,18 +210,18 @@ translate([0,-axle_pos,-thick/2])
 	render() difference()
 	{
 		// massive piece of plate...
-		cube([219, h, thick]);
+		cube([compensator_w, h, thick]);
 
 		// upper right corner, leaving a bit of extra webbing
-		translate([142, h-95-5, thick/2+2]) round_box(100,120,thick+2);
+		translate([142, h-93-5, thick/2]) round_box(100,120,thick+2);
 		translate([142, h-95, -1]) round_box(100,120,thick+2);
 
-		// arms for the lifter, leaving some webbing
+		// arms for the lifter, leaving some extra webbing
 		hull() {
-			translate([10,h-95,-1]) round_box(142-10*2-5*2,95,thick+2,5);
+			translate([10,h-93,-1]) round_box(142-10*2-5*2,95,thick+2,5);
 			translate([5,h-25,-1]) round_box(142-5*2,95,thick+2,5);
 		};
-		translate([5,h-95-5,thick/2]) round_box(142-5*2, 95+5, thick, 5);
+		translate([5,h-93-5,thick/2]) round_box(142-5*2, 95+5, thick, 5);
 
 		// the six little wells at the bottom
 		for(y=[6,6+17+5]) {
@@ -222,27 +232,29 @@ translate([0,-axle_pos,-thick/2])
 
 		// the three big wells across the top, with partial webbing
 		translate([5,h-191,-1]) round_box(65,191-110, thick+2);
-		translate([5,h-191,thick/2]) round_box(65,191-110+5, thick+2);
+		translate([5,h-191,thick/2]) round_box(65,191-110+3, thick+2);
 
 		translate([5+65+5,h-191,-1]) round_box(66,191-110, thick+2);
 		translate([5+65+5,h-191,thick/2]) round_box(66,191-110+5, thick+2);
 
 		translate([5+65+5+66+5,h-191,-1]) round_box(68,191-110, thick+2);
-		translate([5+65+5+66+5,h-191,thick/2]) round_box(68,191-110+5, thick+2);
+		translate([5+65+5+66+5,h-191,thick/2]) round_box(68,191-110+3, thick+2);
 
 		// clearance cutout on left side
 		translate([19.3,h-129.5,-1]) cylinder(r=18, h=thick+2);
 
 		// set screws for the ratchet axle
-		translate([2.5,h-5,-1]) cylinder(d=1.5,h=thick+2);
-		translate([142-2.5,h-5,-1]) cylinder(d=1.5,h=thick+2);
+		dupe([
+			[2.5,h-5,thick],
+			[142-2.5,h-5,thick],
+		]) drill(M14, thick, tap=true, countersink=true, dir=-1);
 
 		// ratchet axle
-		translate([-1,h-5,thick/2]) rotate([0,90,0]) cylinder(d=6,h=h);
+		translate([-1,h-5,thick/2]) rotate([0,90,0]) cylinder(d=M3,h=h, $fn=60);
 
-		// pivots
-		translate([-1,axle_pos,thick/2]) rotate([0,90,0]) cylinder(d=5, h=20+1, $fn=30);
-		translate([219+1,axle_pos,thick/2]) rotate([0,-90,0]) cylinder(d=5, h=20+1, $fn=30);
+		// pivots are M25 bolts, but not tapped so that they can freely spin
+		translate([-1,axle_pos,thick/2]) rotate([0,90,0]) cylinder(d=M3, h=20+1, $fn=30);
+		translate([compensator_w+1,axle_pos,thick/2]) rotate([0,-90,0]) cylinder(d=M3, h=20+1, $fn=30);
 	}
 
 
@@ -256,21 +268,18 @@ translate([0,-axle_pos,-thick/2])
 
 	// spring thingies
 	spring_h = h - 102.5 - 78.5;
-	translate([-8,spring_h,0])
+
+	mirror_dupe(center=[compensator_w/2, 0, 0])
+	translate([0,spring_h,0])
 	render() difference()
 	{
-		cube([8,5,6]);
-		translate([2,-1,3]) rotate([-90,0,0]) cylinder(d=2, h=10);
-	}
-	translate([219,spring_h,0])
-	render() difference()
-	{
-		cube([8,5,6]);
-		translate([6,-1,3]) rotate([-90,0,0]) cylinder(d=2, h=10);
+		box(8,5,6, ref="-c+");
+		translate([-4,0,3]) rotate([-90,0,0]) cylinder(d=3, h=10, $fn=16, center=true);
 	}
 
 	// angled pawl stops
 	pawl_h = h - 102.5 - 107 - 12;
+/*
 	translate([-12,pawl_h,0])
 	render() difference() {
 		translate([0,0,0]) cube([12,12,10]);
@@ -278,12 +287,18 @@ translate([0,-axle_pos,-thick/2])
 		rotate([180+5,0,180]) cube([30,20,20]);
 	}
 
-	translate([219,pawl_h,0])
+	translate([compensator_w,pawl_h,0])
 	render() difference() {
 		translate([0,0,0]) cube([12,12,10]);
 		translate([20,0,5.5])
 		rotate([180+5,0,180]) cube([30,20,20]);
 	}
+*/
+	// straight pawl stops (angle is now on the bumper on the base plate)
+	dupe([
+		[-12,pawl_h,0],
+		[compensator_w,pawl_h,0],
+	]) box(12,12,10);
 }
 	
 }
@@ -327,11 +342,6 @@ module bearing_assembly()
 // 10002
 // this is an enormous waste of material; don't print it!
 // everything is relative to the center line, so center the plate
-baseplate_w = 257;
-baseplate_h = 287;
-baseplate_thick = 10;
-baseplate_center = baseplate_w/2;
-
 baseplate_screws = [
 	[baseplate_center+117, 178, 5], // not sure on dimension
 	[baseplate_center-226/2, 271.5, 5], // not sure on x position
@@ -359,9 +369,6 @@ baseplate_screws = [
 	[baseplate_center-226/2, 70.5, 4.2],
 	[baseplate_center+226/2, 70.5, 4.2],
 ];
-
-compensator_pos = [-219/2,baseplate_h-125.5, 29];
-bearingblock_pos = [-baseplate_center+3+6,baseplate_h-107, 0];
 
 
 module baseplate()
