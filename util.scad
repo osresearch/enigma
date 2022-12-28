@@ -1,12 +1,13 @@
+// instead of proper tapping, we make the holes slightly undersized
+tap_offset = -0.10; // this is a negative offset, so it goes slightly larger
+drill_offset = 0.25;
+
 // these are 2x since we are 50 percent scale
 M4 = 8;
 M3 = 6;
 M25 = 5;
 M2 = 4;
 M14 = 2.8;
-
-// instead of proper tapping, we make the holes slightly undersized
-tap_offset = 0.15;
 
 module mirror_dupe(axis=[1,0,0], center=undef)
 {
@@ -46,10 +47,10 @@ module countersink(d,h,h2=1, $fn=30, reverse=0)
 {
 	if (reverse)
 	{
-		translate([0,0,h-h2]) cylinder(d1=d, d2=d+2*h2*sqrt(2), h=h2+.1);
+		translate([0,0,h-h2]) cylinder(d1=d, d2=d+3*h2*sqrt(2), h=h2+.1);
 		translate([0,0,-0.1]) cylinder(d=d, h=h+0.1);
 	} else {
-		translate([0,0,-0.1]) cylinder(d2=d, d1=d+h2*sqrt(2), h=h2+.1);
+		translate([0,0,-0.1]) cylinder(d2=d, d1=d+3*h2*sqrt(2), h=h2+.1);
 		cylinder(d=d, h=h);
 	}
 }
@@ -109,7 +110,7 @@ module dupe(coords=[],z=0)
 module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir=1)
 {
 	// we don't have proper tapping, so we just shrink the hole slightly
-	d = tap ? d - tap_offset: d;
+	d = tap ? d - tap_offset: d + drill_offset;
 
 	if (coords)
 	{

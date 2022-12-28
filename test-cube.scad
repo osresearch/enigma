@@ -9,9 +9,9 @@ render() difference()
 {
 	box(50,40,t, r=2, ref="cc+");
 
-	translate([-20,-18,t-1])
+	translate([-21,-18,t-1])
 	linear_extrude(height=2)
-	text(str("Drill ", drill_offset, "   Tap ", tap_offset), size=4);
+	text(str("Drill ", drill_offset, " Tap ", tap_offset), size=4);
 	
 	for(p=[
 		[M2, -10, "M2"],
