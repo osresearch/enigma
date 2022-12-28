@@ -10,8 +10,15 @@ compensator_w = 219;
 compensator_pos = [-compensator_w/2,baseplate_h-125.5, 29];
 bearingblock_pos = [-baseplate_center+3+6,baseplate_h-107, 0];
 
+bearingblock_w = 97;
+bearingblock_c = bearingblock_w/2;
+bearingblock_t = 2.5;
+
 
 // ??? page ?
+// this has been heavily modified for printability, including making things thicker
+// and adding an extra spring hole to pull down from the stops instead of using rotating
+// springs on the axle.
 module _driver(thick=0)
 {
 	h = 3;
@@ -19,16 +26,20 @@ module _driver(thick=0)
 
 	render() difference()
 	{
-		hull()
-		{
-			cylinder(r=5, h=h, $fn=30);
-			translate([7-1,-5,0]) cube([1,1,h]);
-			translate([0,35.5,0]) cylinder(r=1, h=h);
-			translate([7,43.0,0]) cylinder(r=0.2, h=h);
+		union() {
+			hull()
+			{
+				cylinder(r=5, h=3*h, $fn=30);
+				translate([7-1,-5,0]) cube([1,1,h]);
+				translate([0,35.5,0]) cylinder(r=1, h=h);
+				translate([7,43.0,0]) cylinder(r=0.2, h=h);
+			}
+			cylinder(r=5, h=4*h, $fn=30);
 		}
 
-		translate([0,0,-1]) cylinder(d=6, h=h+2, $fn=60);
-		translate([0,4,-1]) cylinder(d=0.8, h=h+2, $fn=60);
+		drill(M3, 4*h);
+		translate([0,8,0]) drill(2, 4*h); // larger so it actually works
+		//translate([0,4,-1]) cylinder(d=0.8, h=h+2, $fn=60);
 	}
 
 	// this is the thick part of the driver, for some of the units
@@ -41,6 +52,7 @@ module _driver(thick=0)
 		translate([0,35.5,0]) cylinder(r=1, h=h2);
 	}
 
+	// angled part of the foot
 	hull()
 	{
 		translate([7-1,3-1,0]) cube([1,1,h]);
@@ -48,7 +60,13 @@ module _driver(thick=0)
 		translate([17.8,-2,0]) cube([1,1,h]);
 	}
 
-	translate([7,-5,0]) cube([20.8, 4, h]);
+	// foot with a spring hole, just in case
+	render() difference()
+	{
+		translate([7,-5,0]) cube([20.8, 4, h]);
+		translate([7+20.8-4,-5+4/2,0]) drill(2, 2*h);
+	}
+	
 }
 
 module driver(thick=0)
@@ -137,10 +155,70 @@ module centering_device_assembly()
 	roll_centering_device();
 }
 
+// the outline is complex, so it is done as an SVG.
+// but the screw holes must be exact. there are some common ones 
+module _bearingblock_base(file)
+{
+	render() difference()
+	{
+		linear_extrude(height=bearingblock_t) import(file);
+
+		// baseplate mounting screws
+		dupe([
+			[bearingblock_c, 9.5],
+			[bearingblock_c - 33.25, 9.5],
+			[bearingblock_c + 33.25, 9.5],
+		])
+		drill(M25, bearingblock_t, tap=true);
+
+		// centering device axle and capture plate
+		translate([bearingblock_w - 4, 29, 0])
+		{
+			drill(M3, bearingblock_t);
+
+			dupe([[0,-7.5], [0,+7.5]])
+			drill(M25, bearingblock_t, tap=true);
+		}
+
+		// not sure
+		translate([bearingblock_w - 12, 88.5, 0])
+		drill(4.2, bearingblock_t);
+
+		translate([bearingblock_w - 21, 82, 0])
+		drill(2, bearingblock_t);
+	}
+}
+
 // 100001 - bearing block left
 module bearing_block_left()
 {
-	linear_extrude(height=2.5) import("bearingblock-left.svg");
+	render() difference()
+	{
+		_bearingblock_base("bearingblock-left.svg");
+
+		// shaft holder
+		translate([bearingblock_w - 65, 63.5])
+		{
+			// slight clearance for the holder
+			drill(7+0.75, bearingblock_t);
+
+			spin(3, r=20/2, phase=90)
+				drill(M25, bearingblock_t, tap=true);
+		}
+
+		// hole for the reversing cup locating pin
+		translate([bearingblock_w - 65, 63.5+34.5,0])
+		drill(3.2, bearingblock_t);
+	}
+
+	// spring thingy
+	render() difference() {
+		translate([bearingblock_w - 33, 42,0])
+		box(33-25, 45-42, 8, ref="+++");
+
+		translate([bearingblock_w - 27.5, 42, 5.5]) 
+		rotate([-90,0,0]) drill(2, 5);
+	}
 }
 
 // 100012 - bearing block right
@@ -152,7 +230,15 @@ bearing_block_center_y = 63.5;
 
 module bearing_block_right()
 {
-	linear_extrude(height=2.5) import("bearingblock-right.svg");
+	render() difference()
+	{
+		_bearingblock_base("bearingblock-right.svg");
+
+		// access roll holder, countersunk
+		translate([bearingblock_w - 65, 63.5,0])
+		spin(3, r=30/2, phase=90)
+			countersink(M25, bearingblock_t, reverse=true);
+	}
 }
 
 
@@ -216,9 +302,10 @@ translate([0,-axle_pos,-thick/2])
 		translate([142, h-93-5, thick/2]) round_box(100,120,thick+2);
 		translate([142, h-95, -1]) round_box(100,120,thick+2);
 
-		// arms for the lifter, leaving some extra webbing
+		// arms for the lifter, leaving some extra webbing that hopefully
+		// doesn't impact the rotor toothed wheels
 		hull() {
-			translate([10,h-93,-1]) round_box(142-10*2-5*2,95,thick+2,5);
+			translate([5+10,h-93,-1]) round_box(142-10*2-5*2,95,thick+2,5);
 			translate([5,h-25,-1]) round_box(142-5*2,95,thick+2,5);
 		};
 		translate([5,h-93-5,thick/2]) round_box(142-5*2, 95+5, thick, 5);
@@ -454,9 +541,9 @@ module compensator_assembly()
 	translate([5,102.5-5,0]) {
 		rotate([0,90,0]) cylinder(d=5, h=140);
 
-		translate([67,0,0]) rotate([-15,0,0]) rotate([90,0,90]) driver(1);
-		translate([67+27,0,0]) rotate([-15,0,0]) rotate([90,0,90]) driver(1);
-		translate([67+54,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(0);
+		translate([64,0,0]) rotate([-15,0,0]) rotate([90,0,90]) driver(1);
+		translate([64+27,0,0]) rotate([-15,0,0]) rotate([90,0,90]) driver(1);
+		translate([64+54,0,0]) rotate([-5,0,0]) rotate([90,0,90]) driver(0);
 	}
 }
 
