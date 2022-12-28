@@ -72,7 +72,7 @@ module digitring(which=23,pocketsized=0)
 	}
 
 	// spacer
-	translate([0,0,8.5]) hollow_cylinder(pocket_sized ? 65 : 63.7, inner_d, 11.8-8.5, $fn=360);
+	translate([0,0,8.5]) hollow_cylinder(pocketsized ? 65 : 63.7, inner_d, 11.8-8.5, $fn=360);
 
 }
 
@@ -366,25 +366,25 @@ module access_roll_housing()
 		translate([0,0,1.5]) cylinder(d=57, h=16.4, $fn=180);
 
 		// three M3 holes at 120deg
-		spin(3,[30/2,0,-1])
-			cylinder(d=3, h=5, $fn=16);
+		spin(3,r=30/2)
+			drill(M25, 5, tap=true);
 
-
-		spin(4, pos=[60/2-5,0,16.5-2], offset=0.5)
-			rotate([0,90,0])
-			cylinder(d=2.2, h=10, $fn=16);
+		// four small tapped holes on the outside for the ring holder
+		spin(4, pos=[60/2, 0, 16.5 - 2], offset=0.5)
+			rotate([0,-90,0])
+			drill(M14, 5, tap=true, countersink=true);
 
 		// access hole
 		box(10,20,10, r=2, rot=[90,0,0], pos=[0,-60/2,3], ref="c+c");
 		
 	}
 
-	spin(3,r=30/2)
-		hollow_cylinder(6,3, 12.5);
+	spin(3,pos=[30/2,0,0])
+		hollow_cylinder(6,M25, 12.5, tap=true);
 
 	render() difference()
 	{
-		hollow_cylinder(9-0.1, 5, 18.6);
+		hollow_cylinder(9-0.1, M3, 18.6);
 		box(10,10,10, pos=[0,0,16.5], ref="+c+");
 	}
 }
