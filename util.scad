@@ -1,3 +1,13 @@
+// these are 2x since we are 50 percent scale
+M4 = 8;
+M3 = 6;
+M25 = 5;
+M2 = 4;
+M14 = 2.8;
+
+// instead of proper tapping, we make the holes slightly undersized
+tap_offset = 0.15;
+
 module mirror_dupe(axis=[1,0,0], center=undef)
 {
 	children();
@@ -20,8 +30,11 @@ module quad_dupe()
 	children();
 }
 
-module hollow_cylinder(d1,d2,h,$fn=60)
+module hollow_cylinder(d1,d2,h,$fn=60,tap=false)
 {
+	// we don't have proper tapping
+	d2 = tap ? d2 - tap_offset : d2;
+
 	render() difference()
 	{
 		cylinder(h=h, d=d1);
@@ -95,6 +108,9 @@ module dupe(coords=[],z=0)
 
 module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir=1)
 {
+	// we don't have proper tapping, so we just shrink the hole slightly
+	d = tap ? d - tap_offset: d;
+
 	if (coords)
 	{
 		for(pos=coords)
