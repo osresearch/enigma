@@ -46,7 +46,7 @@ module countersink(d,h,h2=1, $fn=30, reverse=0)
 {
 	if (reverse)
 	{
-		translate([0,0,h-h2]) cylinder(d1=d, d2=d+h2*sqrt(2), h=h2+.1);
+		translate([0,0,h-h2]) cylinder(d1=d, d2=d+2*h2*sqrt(2), h=h2+.1);
 		translate([0,0,-0.1]) cylinder(d=d, h=h+0.1);
 	} else {
 		translate([0,0,-0.1]) cylinder(d2=d, d1=d+h2*sqrt(2), h=h2+.1);
