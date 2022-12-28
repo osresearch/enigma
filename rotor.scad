@@ -365,7 +365,7 @@ module access_roll_housing()
 		cylinder(d=60, h=16.5, $fn=180);
 		translate([0,0,1.5]) cylinder(d=57, h=16.4, $fn=180);
 
-		// three M3 holes at 120deg
+		// three M25 holes at 120deg, matching bearingblock right
 		spin(3,r=30/2)
 			drill(M25, 5, tap=true);
 
@@ -380,8 +380,9 @@ module access_roll_housing()
 	}
 
 	spin(3,pos=[30/2,0,0])
-		hollow_cylinder(6,M25, 12.5, tap=true);
+		hollow_cylinder(9,M25, 12.5, tap=true);
 
+	// center holder for the M3 axle that the rotors ride on
 	render() difference()
 	{
 		hollow_cylinder(9-0.1, M3, 18.6);
@@ -462,9 +463,9 @@ module shaft_holder()
 {
 	render() difference()
 	{
-		cylinder(d=22, h=2, $fn=60);
-		spin(3, r=14/2, phase=90)
-			drill(3.2, 2);
+		cylinder(d=32, h=2, $fn=60);
+		spin(3, r=20/2, phase=90)
+			drill(M25, 2, countersink=true);
 	}
 
 	render() difference()
@@ -474,7 +475,7 @@ module shaft_holder()
 		// make the shaft holder at the top
 		translate([0,0,52.5])
 		{
-			drill(5, 8, dir=-1);
+			drill(M3, 8, dir=-1);
 			box(10,10,5.5+0.1, ref="c+-", pos=[0,0,0.1]);
 		}
 
