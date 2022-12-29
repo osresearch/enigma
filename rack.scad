@@ -8,11 +8,11 @@ baseplate_center = baseplate_w/2;
 
 compensator_w = 219;
 compensator_pos = [-compensator_w/2,baseplate_h-125.5, 29];
-bearingblock_pos = [-baseplate_center+3+6,baseplate_h-107, 0];
+bearingblock_pos = [-baseplate_w/2+3,baseplate_h-107, 0];
 
 bearingblock_w = 97;
 bearingblock_c = bearingblock_w/2;
-bearingblock_t = 2.5;
+bearingblock_t = 5.0; // was 2.5 in the original design
 
 
 // ??? page ?
@@ -22,7 +22,9 @@ bearingblock_t = 2.5;
 module _driver(thick=0)
 {
 	h = 3;
-	h2 = thick ? 6.4 : h;
+	//h2 = thick ? 6.4 : h; // official is 6.4, but we need bigger
+	h2 = thick ? 9 : h;
+	bushing_h = thick ? 27 : 15;
 
 	render() difference()
 	{
@@ -34,11 +36,11 @@ module _driver(thick=0)
 				translate([0,35.5,0]) cylinder(r=1, h=h);
 				translate([7,43.0,0]) cylinder(r=0.2, h=h);
 			}
-			cylinder(r=5, h=4*h, $fn=30);
+			cylinder(r=5, h=bushing_h, $fn=30);
 		}
 
-		drill(M3, 4*h);
-		translate([0,8,0]) drill(2, 4*h); // larger so it actually works
+		drill(M3, bushing_h);
+		translate([0,10,0]) drill(2, bushing_h); // larger so it actually works
 		//translate([0,4,-1]) cylinder(d=0.8, h=h+2, $fn=60);
 	}
 
@@ -60,13 +62,8 @@ module _driver(thick=0)
 		translate([17.8,-2,0]) cube([1,1,h]);
 	}
 
-	// foot with a spring hole, just in case
-	render() difference()
-	{
-		translate([7,-5,0]) cube([20.8, 4, h]);
-		translate([7+20.8-4,-5+4/2,0]) drill(2, 2*h);
-	}
-	
+	// foot 
+	translate([7,-5,0]) cube([20.8, 4, h]);
 }
 
 module driver(thick=0)
@@ -78,6 +75,7 @@ module driver(thick=0)
 // 100039 page 39 of rack
 // this one is really bad for figuring out what is going on where.
 // all of the things are just eyeballed
+// should replace it with an SVG
 centering_device_coords = [-8.6, 47.4, 3];
 
 module _centering_device(h)
@@ -163,11 +161,11 @@ module _bearingblock_base(file)
 	{
 		linear_extrude(height=bearingblock_t) import(file);
 
-		// baseplate mounting screws
+		// baseplate mounting screws; cheat the position slightly since baseplate is messed up
 		dupe([
-			[bearingblock_c, 9.5],
-			[bearingblock_c - 33.25, 9.5],
-			[bearingblock_c + 33.25, 9.5],
+			[bearingblock_c, 9.5 - 0],
+			[bearingblock_c - 33.25, 9.5 - 0],
+			[bearingblock_c + 33.25, 9.5 - 0],
 		])
 		drill(M25, bearingblock_t, tap=true);
 
@@ -200,10 +198,13 @@ module bearing_block_left()
 		translate([bearingblock_w - 65, 63.5])
 		{
 			// slight clearance for the holder
-			drill(7+0.75, bearingblock_t);
+			//drill(7+0.75, bearingblock_t);
 
 			spin(3, r=20/2, phase=90)
 				drill(M25, bearingblock_t, tap=true);
+
+			// add a M3 through hole, just in case
+			drill(M3, bearingblock_t);
 		}
 
 		// hole for the reversing cup locating pin
@@ -213,10 +214,10 @@ module bearing_block_left()
 
 	// spring thingy
 	render() difference() {
-		translate([bearingblock_w - 33, 42,0])
-		box(33-25, 45-42, 8, ref="+++");
+		translate([bearingblock_w - 33, 42,bearingblock_t])
+		box(33-25, 45-42, 8-2.5, ref="+++");
 
-		translate([bearingblock_w - 27.5, 42, 5.5]) 
+		translate([bearingblock_w - 27.5, 42, bearingblock_t + 3]) 
 		rotate([-90,0,0]) drill(2, 5);
 	}
 }
@@ -236,8 +237,13 @@ module bearing_block_right()
 
 		// access roll holder, countersunk
 		translate([bearingblock_w - 65, 63.5,0])
-		spin(3, r=30/2, phase=90)
-			countersink(M25, bearingblock_t, reverse=true);
+		{
+			spin(3, r=30/2, phase=90)
+				countersink(M25, bearingblock_t, reverse=true);
+
+			// add a M3 through hole, just in case
+			drill(M3, bearingblock_t);
+		}
 	}
 }
 
@@ -293,6 +299,7 @@ module compensator()
 
 translate([0,-axle_pos,-thick/2])
 {
+#translate([0,h,0]) cube([142,10,10]);
 	render() difference()
 	{
 		// massive piece of plate...
@@ -397,7 +404,7 @@ module bearing_assembly()
 {
 	// the official baseplate is 159 apart on the inside of the bearing block mounts
 	color("green") translate([0,0,0]) bearing_block_left();
-	%translate([0,0,159-2.5]) bearing_block_right();
+	%translate([0,0,159-5]) bearing_block_right();
 
 	translate([bearing_block_len - bearing_block_center_x,bearing_block_center_y,0]) {
 		translate([0,0,-2.5]) rotate([0,0,0]) shaft_holder();
@@ -480,21 +487,23 @@ module baseplate()
 	render() difference()
 	{
 		box(6,18,40, pos=[0,0,-29], ref="-c+");
-		translate([-6,0,0]) rotate([0,90,0]) countersink(6,6);
+		translate([-6,0,0]) rotate([0,90,0]) drill(M3, 6, tap=true); // countersink(6,6);
 	}
 
 	// bearing block brackets, 159mm apart (inside)
 	translate(bearingblock_pos)
-	translate([159/2,0,0])
-	mirror_dupe() translate([159/2,0,0])
+	mirror_dupe(center=[(159+2*4)/2,0,0])
 	render() difference() {
 		union() {
 			cube([4,101,26]);
-			box(6,101,baseplate_thick+2, ref="-++");
+			box(6,101,baseplate_thick+2, ref="+++");
 		}
-		translate([0,101/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
-		translate([0,101/2+66.5/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
-		translate([0,101/2-66.5/2,22]) rotate([0,90,0]) countersink(4.2, 4, reverse=1);
+		dupe([
+			[0, 50, 22],
+			[0, 50+66.5/2, 22],
+			[0, 50-66.5/2, 22],
+		])
+		rotate([0,90,0]) drill(M25, 4, countersink=true);
 	}
 
 	// springs for the centering devices

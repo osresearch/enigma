@@ -1,6 +1,10 @@
 // based on http://www.enigma.hs-weingarten.de/drawings.php
 include <util.scad>
 
+letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+shaft_holder_d = 7; // maybe make this larger?
+
 // page 1
 module kerfring(pocket_sized=0)
 {
@@ -30,14 +34,15 @@ module kerfring(pocket_sized=0)
 // 400021 page 21: through hole at 23, cutout at 03
 module digitring(which=23,pocketsized=0)
 {
-	inner_d = 60 + 1; // add some slop
+	inner_d = 60; // add some slop
 	render() difference()
 	{
 		cylinder(d=75, h=8.5 + (pocketsized ? 0 : 1.5), $fn=26);
 	
 		translate([0,0,-1]) cylinder(d=inner_d, h=8.5 + 1.5 + 2, $fn=360);
 
-		// locating holes for the letter adjustments
+		// locating holes for the letter adjustments, if not pocketsized
+		if (!pocketsized)
 		for(i=[1:26])
 		{
 			rotate([0,0,90 - (i+2)*360/26])
@@ -53,10 +58,11 @@ module digitring(which=23,pocketsized=0)
 		for(i=[1:26])
 		{
 			rotate([0,0,-90 + (i-which)*360/26])
-			translate([75/2-0.75,0,8.5/2])
+			translate([75/2-2,0,8.5/2])
 			rotate([0,90,0])
-			linear_extrude(height=1)
-			text((i < 10 ? str("0",i) : str(i)), size=5.5, halign="center", valign="center");
+			linear_extrude(height=3)
+			//text((i < 10 ? str("0",i) : str(i)), size=5.5, halign="center", valign="center");
+			text(letters[i-1], size=7, halign="center", valign="center");
 		}
 
 		// carry ring cutout
@@ -441,15 +447,58 @@ module reflector_cabinet()
 		}
 
 		// large cutout
-		rotate([0,0,-30])
+		rotate([0,0,60])
 		translate([0,0,-1])
-		render() intersection()
-		{
-			cylinder(d=51, h=5, $fn=60);
-			cube([30,51,5], center=true);
-		}
+		round_keyway(51, 30, 5);
 	}
 }
+
+// 300003
+module reflector_wedge()
+{
+	translate([-(24+18)/4,0,0])
+	rotate([0,0,-62 + 10])
+	render() difference()
+	{
+		hollow_cylinder(24, 18, 12.4);
+		// only keep 62 degrees of arc
+		rotate([0,0,90+62]) box(50, 50, 25, ref="+cc");
+		box(50, 50, 25, ref="c-c");
+
+		translate([0,0,12.4]) rotate([0,00,0]) rotate([0,28,90+40]) box(50, 50, 50, ref="-cc");
+	}
+}
+
+module reflector_wedge_holder()
+{
+	holder_t = 12.9;
+
+	render() difference()
+	{
+		round_keyway(55, 34, holder_t);
+
+		translate([0,0,2])
+		round_keyway(51, 30, holder_t);
+
+		drill(shaft_holder_d, 2);
+
+		spin(3, r=8.5, phase=90)
+			countersink(M14, 2, reverse=true);
+
+		// wedge screws, although they can be replaced with the built in wedge shapes
+		if (0) for(a=[5,30,180+5,180+30])
+		{
+			rotate([0,0,a]) translate([43/2,0,0]) drill(3.2, 2, countersink=true);
+		}
+
+	}
+
+	rotate([0,0,30]) translate([43/2,0,0])
+	reflector_wedge();
+
+	// not yet shown: the key thing that engages the locator pin?
+}
+
 
 module reflector_assembly()
 {
@@ -470,7 +519,7 @@ module shaft_holder()
 
 	render() difference()
 	{
-		cylinder(d=7, h=52.5, $fn=60);
+		cylinder(d=shaft_holder_d, h=52.5, $fn=60);
 
 		// make the shaft holder at the top
 		translate([0,0,52.5])
