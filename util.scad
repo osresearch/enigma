@@ -1,6 +1,6 @@
 // instead of proper tapping, we make the holes slightly undersized
-tap_offset = -0.10; // this is a negative offset, so it goes slightly larger
-drill_offset = 0.25;
+tap_offset = -0.20; // this is a negative offset, so it goes slightly larger
+drill_offset = 0.45;
 
 // these are 2x since we are 50 percent scale
 M4 = 8;
@@ -31,6 +31,13 @@ module quad_dupe()
 	children();
 }
 
+module linear_dupe(n,offset)
+{
+	for(i=[0:n-1])
+		translate(i*offset)
+		children();
+}
+
 module hollow_cylinder(d1,d2,h,$fn=60,tap=false)
 {
 	// we don't have proper tapping
@@ -43,14 +50,16 @@ module hollow_cylinder(d1,d2,h,$fn=60,tap=false)
 	}
 }
 
-module countersink(d,h,h2=1, $fn=30, reverse=0)
+module countersink(d,h,h2=2.5, $fn=30, reverse=0)
 {
+	angle = 1.6;
+
 	if (reverse)
 	{
-		translate([0,0,h-h2]) cylinder(d1=d, d2=d+3*h2*sqrt(2), h=h2+.1);
+		translate([0,0,h-h2]) cylinder(d1=d, d2=d+angle*h2*sqrt(2), h=h2+.1);
 		translate([0,0,-0.1]) cylinder(d=d, h=h+0.1);
 	} else {
-		translate([0,0,-0.1]) cylinder(d2=d, d1=d+3*h2*sqrt(2), h=h2+.1);
+		translate([0,0,-0.1]) cylinder(d2=d, d1=d+angle*h2*sqrt(2), h=h2+.1);
 		cylinder(d=d, h=h);
 	}
 }
@@ -136,6 +145,17 @@ module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir
 					cylinder(d=d,h=h+0.2, $fn=$fn);
 			}
 		}
+	}
+}
+
+
+// shape with circular edges and a flat top
+module round_keyway(w,h,t)
+{
+	render() intersection()
+	{
+		cylinder(d=w, h=t, $fn=180);
+		box(w, h, t, ref="cc+");
 	}
 }
 
