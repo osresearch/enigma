@@ -1,6 +1,6 @@
 // instead of proper tapping, we make the holes slightly undersized
-tap_offset = -0.20; // this is a negative offset, so it goes slightly larger
-drill_offset = 0.45;
+tap_offset = -0.23; // this is a negative offset, so it goes slightly larger
+drill_offset = 0.50;
 
 // these are 2x since we are 50 percent scale
 M4 = 8;

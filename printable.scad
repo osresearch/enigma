@@ -24,7 +24,7 @@ render() difference()
 	}
 
 	// simple shaft in the middle
-	drill(rotor_axle_d, 20);
+	drill(rotor_axle_d, 20, countersink=true);
 
 	// through-holes for the pogo pins copied from the coping
 		// contacts
@@ -34,13 +34,17 @@ render() difference()
 		// m2.5 screws to connect to the center toothed wheel
 		spin(3, r=26/2, phase=-90)
 			countersink(pocket_sized ? M25 : 3.1, toothed_wheel_height, 3, reverse=true);
+
+	// mark the orientation
+	translate([0,15,0]) drill(2, 10);
 }
 }
 
 //%bushing();
 
 // this merges the center wheel, the bushing, the steelbushing and the coping
-// the base will likely be replaced with a PCB
+// the base will likely be replaced with a PCB.
+// the axle hole is countsunk so that it mates more easily with the toothed wheel
 module center_wheel_printable()
 {
 	render() difference()
@@ -51,7 +55,7 @@ module center_wheel_printable()
 		spin(3, r=26/2, phase=90)
 			drill(pocket_sized ? M25 : 3, 10, tap=true);
 
-		drill(rotor_axle_d, 20);
+		drill(rotor_axle_d, 20, countersink=true);
 
 		// through holes for the contacts
 		// mill-max 0985-0-15-20-71-14-11-0
@@ -60,6 +64,9 @@ module center_wheel_printable()
 			cylinder(d=0.037*25.4*2, h=6.8, $fn=24);
 			translate([0,0,25.4*(0.186-0.028)*2]) cylinder(d=0.042*25.4*2, h=3, $fn=24);
 		}
+
+		// mark the orientation
+		translate([0,-15,0]) drill(2, 10);
 	}
 
 	// replace the steel bushing with a square peg
@@ -74,7 +81,7 @@ module center_wheel_printable()
 				translate([-rollplate_peg_s/2,-rollplate_peg_s/2,0])
 				cube([rollplate_peg_s,rollplate_peg_s,bushing_height]);
 			}
-			drill(rotor_axle_d, 29);
+			drill(rotor_axle_d, 29, countersink=true);
 		}
 	} else {
 	}
@@ -144,7 +151,7 @@ module centering_device_printable()
 	render() difference() {
 		union() {
 			_centering_device(h);
-			cylinder(d=9, h=27, $fn=60);
+			cylinder(d=12, h=6, $fn=60);
 			translate([-8.6, 47.4, 0]) cylinder(d=8, h=h+1, $fn=60);
 		}
 
@@ -156,34 +163,115 @@ module centering_device_printable()
 	}
 }
 
+// this uses a simple M2.5 screw to secure it to the arm and adds
+// a V-groove to help it stay on the part
 module roll_centering_device_printable()
 {
 	render() difference() {
-		cylinder(d=13, h=6, $fn=60);
-		drill(M25 + 0.1, 6, countersink=true);
+		union() {
+			cylinder(d1=15, d2=13, h=3, $fn=60);
+			translate([0,0,3]) cylinder(d=13, h=1, $fn=60);
+			translate([0,0,4]) cylinder(d1=13, d2=15, h=3, $fn=60);
+		}
+		drill(M25 + 0.1, 8, countersink=true);
 	}
+}
+
+// spacer for the driver section with a cutout for the spring to pass through the axle
+module spring_holder_printable(thick=1)
+{
+	h = 27 - 6;
+	render() difference() {
+		union() {
+			if (thick)
+				cylinder(d=12, h=h, $fn=30);
+
+			hull() {
+				cylinder(d=16, h=6, $fn=30);
+				translate([0,6,0]) cylinder(d=6, h=6, $fn=30);
+			}
+		}
+
+		drill(M3 + 0.20, h); // size might require a reaming pass with 3mm drill for smothness
+
+		// wire holder
+		translate([0,6,3]) rotate([0,90,0]) cylinder(d=3, h=12, center=true, $fn=24);
+
+		// set screws
+		translate([0,-8,3])
+		rotate([-90,0,0])
+		drill(M14, 8, tap=true);
+	}
+
+}
+
+// same dimensions as the spring holder, but without the idler and spring holder
+module shaft_spacer(h)
+{
+	render() difference()
+	{
+		cylinder(d=16, h=8, $fn=30);
+		drill(M3 + 0.20, 8);
+
+		// set screw
+		translate([-8,0,4])
+		rotate([0,90,0])
+		drill(M14, 4, tap=true);
+	}
+}
+
+
+module driver_printable()
+{
+	// inverted so that the springs work the right way and have clearance
+	// held in by two M3 jam nuts, 2.5mm thick * 2
+	render() difference()
+	{
+		union() {
+			driver(1);
+			//cylinder(d=14, h=27 - 2.5*2*2, $fn=32);
+		}
+
+		drill(M3+0.20, 27);
+	}
+}
+
+module rotor_platter()
+{
+	translate([0,0,5.5]) digitring_printable();
+	center_wheel_printable();
+
+	translate([100,0,0]) toothed_wheel_printable();
 }
 
 scale(0.5)
 {
-rollplate_printable();
 
-// fuse the center wheel and digit ring, until we have a way to make them rotate
-translate([0,90,0]) {
-	center_wheel_printable();
-	translate([0,0,5.5]) digitring_printable();
-}
 
-translate([-50,28,0]) rotate([0,0,-90]) driver(1);
-translate([80,50,0]) toothed_wheel_printable();
-
-//translate([50,120,0]) bearing_block_right();
-//translate([-50,120,0]) bearing_block_left();
+rotor_platter();
 
 /*
-linear_dupe(3, [30,0,0]) {
-centering_device_printable();
-translate([-10,20,0]) roll_centering_device_printable();
+linear_dupe(3, [-20,10,0])
+{
+	//driver_printable();
+	roll_centering_device_printable();
+	translate([-10,-15,0]) spring_holder_printable();
+}
+*/
+
+//translate([-20,-20,0]) shaft_spacer();
+
+
+/*
+// try printing the axle (probably fails)
+render() difference()
+{
+	cylinder(d=6, h=142, $fn=60);
+	rotate([0,-90,0])
+	{
+		dupe([[2.5,0], [30,0], [30+27,0], [30+27+27,0], [142-2.5,0]])
+		cylinder(d=2, h=10, $fn=24, center=true);
+	}
 }
 */
 }

@@ -17,41 +17,44 @@ bearingblock_t = 5.0; // was 2.5 in the original design
 
 // ??? page ?
 // this has been heavily modified for printability, including making things thicker
-// and adding an extra spring hole to pull down from the stops instead of using rotating
-// springs on the axle.
+// and adding an larger spring hole plus the axle for the spring to wrap around
 module _driver(thick=0)
 {
-	h = 3;
+	h = 6;
 	//h2 = thick ? 6.4 : h; // official is 6.4, but we need bigger
 	h2 = thick ? 9 : h;
-	bushing_h = thick ? 27 : 15;
+	bushing_h = thick ?  h : h;
 
 	render() difference()
 	{
 		union() {
 			hull()
 			{
-				cylinder(r=5, h=3*h, $fn=30);
+				cylinder(r=6, h=h, $fn=30);
 				translate([7-1,-5,0]) cube([1,1,h]);
 				translate([0,35.5,0]) cylinder(r=1, h=h);
 				translate([7,43.0,0]) cylinder(r=0.2, h=h);
 			}
-			cylinder(r=5, h=bushing_h, $fn=30);
+			cylinder(r=6, h=bushing_h, $fn=30);
 		}
 
 		drill(M3, bushing_h);
-		translate([0,10,0]) drill(2, bushing_h); // larger so it actually works
+
+		// spring hole, larger so it actually works
+		translate([0,12,0]) drill(2.5, bushing_h);
 		//translate([0,4,-1]) cylinder(d=0.8, h=h+2, $fn=60);
 	}
 
 	// this is the thick part of the driver, for some of the units
+	// temp hack: flip it the other way
+	translate([0,0,0])
 	hull()
 	{
 		translate([7-5.5,38-1,0]) cube([1,1,h2]);
 		translate([13,38,0]) cylinder(r=0.2, h=h2);
 		translate([7-1,32.5,0]) cube([1,1,h2]);
 		translate([7-8,32.5,0]) cube([1,1,h2]);
-		translate([0,35.5,0]) cylinder(r=1, h=h2);
+		translate([0,35.4,0]) cylinder(r=1, h=h2);
 	}
 
 	// angled part of the foot
@@ -507,6 +510,7 @@ module baseplate()
 	}
 
 	// springs for the centering devices
+	// for printability this uses a standard bic pen spring, 4.3mm
 	translate([-baseplate_center,baseplate_h,0])
 	for(i=[0:3])
 	{
@@ -514,10 +518,13 @@ module baseplate()
 		render() difference() 
 		{
 			union() {
-				translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=5.5, h=13);
-				box(11,13,15.5, ref="c++");
+				//translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=5.5, h=13);
+				//box(11,13,15.5, ref="c++");
+				translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=6.5, h=13);
+				box(13,13,15.5, ref="c++");
 			}
-			translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=6.2, h=19.1);
+			//translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=6.2, h=19.1);
+			translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=4.4*2, h=19.1);
 		}
 	}
 
