@@ -50,17 +50,20 @@ module hollow_cylinder(d1,d2,h,$fn=60,tap=false)
 	}
 }
 
-module countersink(d,h,h2=2.5, $fn=30, reverse=0)
+module countersink(d,h,h2=2.5, $fn=30, reverse=0, deep=0)
 {
 	angle = 1.6;
+	bore = d + angle * h2 * sqrt(2);
 
 	if (reverse)
 	{
-		translate([0,0,h-h2]) cylinder(d1=d, d2=d+angle*h2*sqrt(2), h=h2+.1);
+		translate([0,0,h-h2]) cylinder(d1=d, d2=bore, h=h2+.1);
 		translate([0,0,-0.1]) cylinder(d=d, h=h+0.1);
 	} else {
-		translate([0,0,-0.1]) cylinder(d2=d, d1=d+angle*h2*sqrt(2), h=h2+.1);
-		cylinder(d=d, h=h);
+		if (deep != 0)
+			translate([0,0,-0.1]) cylinder(d=bore, h=deep);
+		translate([0,0,deep-0.1]) cylinder(d2=d, d1=bore, h=h2+.1);
+		translate([0,0,deep]) cylinder(d=d, h=h);
 	}
 }
 
@@ -116,7 +119,9 @@ module dupe(coords=[],z=0)
 	}
 }
 
-module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir=1)
+
+// TODO: fix reverse to do the right thing
+module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir=1,deep=0)
 {
 	// we don't have proper tapping, so we just shrink the hole slightly
 	d = tap ? d - tap_offset: d + drill_offset;
@@ -131,10 +136,9 @@ module drill(d,h,pos=[0,0,0],coords=undef,$fn=24,tap=false,countersink=false,dir
 			if (countersink)
 			{
 				if (dir == -1)
-					mirror([0,0,1])
-					countersink(d,h, $fn=$fn);
+					countersink(d,h, $fn=$fn, reverse=true, deep=deep);
 				else
-					countersink(d,h, $fn=$fn);
+					countersink(d,h, $fn=$fn, deep=deep);
 			} else {
 				if (dir == -1)
 					translate([0,0,+0.1])

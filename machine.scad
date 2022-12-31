@@ -1,22 +1,24 @@
 /*
  * An assembled machine for display, not printing
  */
+printable=true;
+
 include <rotor.scad>
 include <rack.scad>
 include <keyboard.scad>
 include <lamp.scad>
 
 if (1) {
-baseplate();
+baseplate(printable=printable);
 
 translate(compensator_pos)
 rotate([5,0,0])
 compensator_assembly();
 
 translate(bearingblock_pos)
-translate([4,(55.5-48.5)/2 - 4/2,22 - 9.5])
+translate([-bearingblock_t,(55.5-48.5)/2 - 4/2,22 - 9.5])
 rotate([90,0,90])
-bearing_assembly();
+bearing_assembly(printable=printable);
 
 keyboard_assembly();
 lamp_assembly();

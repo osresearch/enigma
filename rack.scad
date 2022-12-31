@@ -8,11 +8,14 @@ baseplate_center = baseplate_w/2;
 
 compensator_w = 219;
 compensator_pos = [-compensator_w/2,baseplate_h-125.5, 29];
-bearingblock_pos = [-baseplate_w/2+3,baseplate_h-107, 0];
+
+// this is the *inside* edge of the left plate
+bearingblock_pos = [-baseplate_w/2+3+4+5,baseplate_h-107, 0];
 
 bearingblock_w = 97;
 bearingblock_c = bearingblock_w/2;
-bearingblock_t = 5.0; // was 2.5 in the original design
+
+bearingblock_t = printable ? 10.0 : 2.5; // was 2.5 in the original design
 
 
 // ??? page ?
@@ -164,7 +167,9 @@ module _bearingblock_base(file)
 	{
 		linear_extrude(height=bearingblock_t) import(file);
 
-		// baseplate mounting screws; cheat the position slightly since baseplate is messed up
+		// baseplate mounting screws
+		// not included in printable design since the baseplate and bearings are merged
+		if (!printable)
 		dupe([
 			[bearingblock_c, 9.5 - 0],
 			[bearingblock_c - 33.25, 9.5 - 0],
@@ -191,7 +196,9 @@ module _bearingblock_base(file)
 }
 
 // 100001 - bearing block left
-module bearing_block_left()
+// CHANGE FROM THE ORIGINAL: the bearing block holes are inverted so that
+// the axle can drop in for testing
+module bearing_block_left(printable=false)
 {
 	render() difference()
 	{
@@ -203,16 +210,22 @@ module bearing_block_left()
 			// slight clearance for the holder
 			//drill(7+0.75, bearingblock_t);
 
-			spin(3, r=20/2, phase=90)
+			// original was +90
+			spin(3, r=20/2, phase=-90)
 				drill(M25, bearingblock_t, tap=true);
 
 			// add a M3 through hole, just in case
 			drill(M3, bearingblock_t);
+
+			// add a full length slot for the axle to drop in
+			if (printable)
+				box(M3, 100, bearingblock_t*2, ref="c+c");
 		}
 
 		// hole for the reversing cup locating pin
 		translate([bearingblock_w - 65, 63.5+34.5,0])
 		drill(3.2, bearingblock_t);
+
 	}
 
 	// spring thingy
@@ -232,7 +245,7 @@ bearing_block_len = 97;
 bearing_block_center_x = 65;
 bearing_block_center_y = 63.5;
 
-module bearing_block_right()
+module bearing_block_right(printable=false)
 {
 	render() difference()
 	{
@@ -241,11 +254,16 @@ module bearing_block_right()
 		// access roll holder, countersunk
 		translate([bearingblock_w - 65, 63.5,0])
 		{
-			spin(3, r=30/2, phase=90)
-				countersink(M25, bearingblock_t, reverse=true);
+			// original was +90, need to verify access cup
+			spin(3, r=30/2, phase=-90)
+				drill(M25, bearingblock_t, countersink=true, dir=-1);
 
 			// add a M3 through hole, just in case
 			drill(M3, bearingblock_t);
+
+			// add a full length slot for the axle to drop in
+			if (printable)
+				box(M3, 100, bearingblock_t+2, ref="c++", pos=[0,0,-1]);
 		}
 	}
 }
@@ -302,7 +320,6 @@ module compensator()
 
 translate([0,-axle_pos,-thick/2])
 {
-#translate([0,h,0]) cube([142,10,10]);
 	render() difference()
 	{
 		// massive piece of plate...
@@ -403,23 +420,27 @@ translate([0,-axle_pos,-thick/2])
 
 
 
-module bearing_assembly()
+module bearing_assembly(printable=false, display=true)
 {
 	// the official baseplate is 159 apart on the inside of the bearing block mounts
-	color("green") translate([0,0,0]) bearing_block_left();
-	%translate([0,0,159-5]) bearing_block_right();
+	// the real bearing assemblies are 2.5mm, so it is 159-5mm space in between
+	color("green") translate([0,0,0]) bearing_block_left(printable);
+	translate([0,0,159+bearingblock_t-5]) bearing_block_right(printable);
 
-	translate([bearing_block_len - bearing_block_center_x,bearing_block_center_y,0]) {
-		translate([0,0,-2.5]) rotate([0,0,0]) shaft_holder();
-		translate([0,0,+3.5]) lever();
-		color("silver") translate([0,0,+45]) roll_shaft();
+
+if(display)
+{
+	translate([bearing_block_len - bearing_block_center_x,bearing_block_center_y,bearingblock_t]) {
+		translate([0,0,-bearingblock_t-2.5]) rotate([0,0,180]) shaft_holder();
+		translate([0,0,1]) lever();
+		color("silver") translate([0,0,+35]) roll_shaft();
 		%translate([0,0,10]) rotate([0,0,0]) reflector_assembly();
 
-		translate([0,0,136-27*2]) rotate([0,180,360/26/2]) animated_assembly(0,0);
-		translate([0,0,136-27]) rotate([0,180,360/26/2]) animated_assembly(0,0);
-		translate([0,0,136]) rotate([0,180,360/26/2]) animated_assembly(0,0);
+		translate([0,0,133-27*2]) rotate([0,180,360/26/2]) animated_assembly(0,0);
+		translate([0,0,133-27]) rotate([0,180,360/26/2]) animated_assembly(0,0);
+		translate([0,0,133]) rotate([0,180,360/26/2]) animated_assembly(0,0);
 
-		translate([0,0,159-2.5]) rotate([0,180,-90]) access_roll();
+		translate([0,0,159-5]) rotate([0,180,-90]) access_roll();
 	}
 
 
@@ -435,13 +456,27 @@ module bearing_assembly()
 	}
 }
 
+	// if printable, add some extra chunks and ribs
+	if (printable)
+	translate([0,0,bearingblock_t])
+	mirror_dupe([0,0,1], center=[0,0,159/2-5/2])
+	{
+		translate([-1,0,2]) box(bearingblock_w+2, 10, bearingblock_t + 4, ref="+c-");
+		translate([10,-5,-bearingblock_t+0.1]) box(5, 90, 2, ref="c+-");
+		translate([55,-5,-bearingblock_t+0.1]) box(5, 90, 2, ref="c+-");
+	}
+}
+
 
 // 10002
 // this is an enormous waste of material; don't print it!
 // everything is relative to the center line, so center the plate
 baseplate_screws = [
 	[baseplate_center+117, 178, 5], // not sure on dimension
-	[baseplate_center-226/2, 271.5, 5], // not sure on x position
+	//[baseplate_center-226/2, 271.5, 5], // skipping for printable bearing block
+	[baseplate_center+226/2, 271.5, 4],
+	[baseplate_center-226/2, 14, 5],
+	[baseplate_center+226/2, 14, 5],
 
 	[baseplate_center-70, 95.5, 3.2],
 	[baseplate_center+78, 95.5, 3.2],
@@ -455,8 +490,8 @@ baseplate_screws = [
 	[baseplate_center-241/2, 100.5, 4],
 	[baseplate_center+241/2, 100.5, 4],
 
-	[baseplate_center-230/2, 48.5, 4.2],
-	[baseplate_center+230/2, 48.5, 4.2],
+	// [baseplate_center-230/2, 48.5, 4.2], // these are for the compensator and are included
+	// [baseplate_center+230/2, 48.5, 4.2], // these are for the compensator and are included
 
 	[baseplate_center-227/2, 14, 5],
 	[baseplate_center+227/2, 14, 5],
@@ -465,10 +500,16 @@ baseplate_screws = [
 	[baseplate_center+226/2, 26.0, 4.2],
 	[baseplate_center-226/2, 70.5, 4.2],
 	[baseplate_center+226/2, 70.5, 4.2],
+
+	// battery mounting holes
+	[baseplate_w - 29.5, 197 + 14, 3],
+	[baseplate_w - 29.5, 197 + 14 + 53.5, 3],
+	[baseplate_w - 29.5 - 40, 197 + 14, 3],
+	[baseplate_w - 29.5 - 40, 197 + 14 + 53.5, 3],
 ];
 
 
-module baseplate()
+module baseplate(printable=false)
 {
 
 	color("gray")
@@ -480,8 +521,11 @@ module baseplate()
 		for(screw=baseplate_screws)
 		{
 			translate([screw[0],screw[1],0])
-			countersink(screw[2], baseplate_thick+2, $fn=16);
+			drill(screw[2], baseplate_thick+2, countersink=2, deep=baseplate_thick-4);
 		}
+
+		// cutout for battery and motor
+		box(70, 85, 10, r=4, pos=[baseplate_w - 5,197,baseplate_thick - 6], ref="-++");
 	}
 
 	// compensator brackets are 219 on the inside
@@ -494,6 +538,8 @@ module baseplate()
 	}
 
 	// bearing block brackets, 159mm apart (inside)
+	// not included if we're printing the merged plate+brackets
+	if (!printable)
 	translate(bearingblock_pos)
 	mirror_dupe(center=[(159+2*4)/2,0,0])
 	render() difference() {
@@ -517,12 +563,15 @@ module baseplate()
 		translate([48+11/2+27*i,-38.5-13/2,0])
 		render() difference() 
 		{
+			// rounded house
 			union() {
 				//translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=5.5, h=13);
 				//box(11,13,15.5, ref="c++");
 				translate([0,0,15.5]) rotate([-90,0,0]) cylinder(r=6.5, h=13);
 				box(13,13,15.5, ref="c++");
 			}
+
+			// hole for the spring
 			//translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=6.2, h=19.1);
 			translate([0,13-9,15.5]) rotate([-90,0,0]) cylinder(d=4.4*2, h=19.1);
 		}

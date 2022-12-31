@@ -1,8 +1,10 @@
-include <rotor.scad>
-include <rack.scad>
-
 // if we're making a small one, then we adjust some sizes
 pocket_sized = 1;
+
+printable=true;
+
+include <rotor.scad>
+include <rack.scad>
 
 // shaft is a M3 with a little bit of extra space
 rotor_axle_d = pocket_sized ? M3 : 9;
@@ -244,11 +246,21 @@ module rotor_platter()
 	translate([100,0,0]) toothed_wheel_printable();
 }
 
+module baseplate_printable()
+{
+	baseplate(printable=1);
+
+	translate(bearingblock_pos)
+	translate([-bearingblock_t,(55.5-48.5)/2 - 4/2,22 - 9.5])
+	rotate([90,0,90])
+	bearing_assembly(printable=1, display=false);
+}
+
 scale(0.5)
 {
 
+baseplate_printable();
 
-rotor_platter();
 
 /*
 linear_dupe(3, [-20,10,0])
