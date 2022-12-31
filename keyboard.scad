@@ -61,6 +61,7 @@ input_board_h = 82;
 
 module input_board_base()
 {
+if(0) {
 	box(input_board_w, input_board_h, 10.7,
 		pos=[0,input_board_h,0], ref="c-+");
 
@@ -71,45 +72,55 @@ module input_board_base()
 		pos=[0,input_board_h,19.2], ref="c-+");
 }
 
+	// rotate and align so that top of the top shelf is at 27.7mm
+	translate([-input_board_w/2,0,27.7 + 2.43])
+	rotate([0,90,0]) linear_extrude(height=input_board_w) import("inputboard.svg");
+}
+
 module input_board()
 {
+	key_d = 6.2 + 1;
+
 	translate([0,-46.25+8.5,0])
 	render() difference()
 	{
 		input_board_base();
 
+		// keys
 		for(i=[0:8]) {
 			translate([input_board_w/2 - 26.5 - i*24.2,68.5,-1])
-			cylinder(d=6.2, h=100);
+			cylinder(d=key_d, h=100);
 		}
 
 		for(i=[0:7]) {
 			translate([input_board_w/2 - 43.8 - i*24.2,46.5,-1])
-			cylinder(d=6.2, h=100);
+			cylinder(d=key_d, h=100);
 		}
 
 		for(i=[0:8]) {
 			translate([input_board_w/2 - 36.9 - i*24.2,24.0,-1])
-			cylinder(d=6.2, h=100);
+			cylinder(d=key_d, h=100);
 		}
 
 		// top row mounting screws
 		mirror_dupe()
-		drill(4.2, 100, pos=[226/2, 68.5, 27.7], countersink=true, dir=-1);
+		drill(M25, 5, pos=[226/2, 68.5, 27.7-5], countersink=true, dir=-1);
 
 		// bottom row mounting screws
 		mirror_dupe()
-		drill(4.2, 100, pos=[226/2, 24.0, 10.7], countersink=true, dir=-1);
+		drill(M25, 5, pos=[226/2, 24.0, 10.7-5], countersink=true, dir=-1);
 
 		// center row mounting screw
-		drill(4.2, 100, pos=[ 0, 46.25, 19.2], countersink=true, dir=-1);
+		drill(M25, 5, pos=[ 0, 46.25, 19.2-5], countersink=true, dir=-1);
 
 		// fake the hollow body with large holes for the shafts
+		if(0) {
 		mirror_dupe()
 		drill(10, 27.7-2, pos=[226/2, 68.5]);
 		mirror_dupe()
 		drill(10, 10.7-2, pos=[226/2, 24.5]);
 		drill(10, 19.2-2, pos=[ 0, 46.25]);
+		}
 
 		// front mounting holes
 	}
@@ -176,7 +187,7 @@ module contactor_plate()
 }
 
 // derived from the three buttons, includes keycap
-module _button_template(h=64, mids=[37], include_button=1)
+module _button_template(k, h=64, mids=[37], include_button=1)
 {
 	render() difference()
 	{
@@ -213,21 +224,31 @@ module _button_template(h=64, mids=[37], include_button=1)
 	}
 
 	if (include_button)
+	render() difference() {
 		translate([0,0,h])
 		cylinder(d=12, h=2, $fn=60);
+
+		translate([0,0,h+1])
+		linear_extrude(height=2) text(str(k), size=8, valign="center", halign="center");
+	}
 }
 
-module button_short() { _button_template(64, [37]); }
-module button_medium() { _button_template(72.5, [29]); }
-module button_long() { _button_template(81, [20, 29]); }
+module button_short(k) { _button_template(k, 64, [37]); }
+module button_medium(k) { _button_template(k, 72.5, [29]); }
+module button_long(k) { _button_template(k, 81, [20, 29]); }
 
+
+top_keys = "QWERTZUIO";
+mid_keys = "ASDFGHJK";
+bot_keys = "PYXCVBNML";
 
 module keyboard_assembly()
 {
 translate([0,40,baseplate_thick + pillar_small_len]) contactor_plate();
 translate([0,40,baseplate_thick + column_short_len - (10.7-2)])
 {
-	color("yellow") input_board();
+	//color("yellow")
+	input_board();
 
 	color("silver")
 	translate([0,8.5,-45])
@@ -235,17 +256,17 @@ translate([0,40,baseplate_thick + column_short_len - (10.7-2)])
 		// top row keys
 		for(i=[0:8])
 			translate([-91.6+24.2*i,44.5/2,-1])
-			button_long();
+			button_long(top_keys[i]);
 
 		// middle row
 		for(i=[0:7])
 			translate([-85+24.2*i,0/2,-1])
-			button_medium();
+			button_medium(mid_keys[i]);
 
 		// bottom  row
 		for(i=[0:8])
 			translate([-102+24.2*i,-44.5/2,-1])
-			button_short();
+			button_short(bot_keys[i]);
 	}
 }
 
